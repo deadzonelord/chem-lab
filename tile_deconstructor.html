@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>مفكك بطاقة ومربع العنصر | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 10px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع والترويسة */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* تبويبات الأوضاع الرئيسية */
+    .modes-tabs {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; background: #1e293b;
+      padding: 4px; border-radius: 10px; border: 1px solid #334155;
+    }
+    .mode-btn {
+      background: transparent; border: none; color: #94a3b8; padding: 6px 4px;
+      border-radius: 7px; font-size: 11.5px; font-weight: bold; cursor: pointer;
+      font-family: 'Cairo', sans-serif; transition: all 0.2s; text-align: center;
+    }
+    .mode-btn.active { background: #0284c7; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* شريط اختيار العناصر الـ 118 والبحث */
+    .selector-bar {
+      display: flex; gap: 6px; align-items: center; background: #1e293b;
+      padding: 6px 10px; border-radius: 10px; border: 1px solid #334155;
+    }
+    .selector-bar select {
+      flex: 1; background: #0f172a; color: #f8fafc; border: 1px solid #475569;
+      padding: 6px 8px; border-radius: 6px; font-size: 12px; font-weight: bold;
+      font-family: 'Cairo', sans-serif; outline: none;
+    }
+    .quick-chips {
+      display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+    }
+    .quick-chips::-webkit-scrollbar { display: none; }
+    .chip-btn {
+      flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 3px 8px; border-radius: 6px; font-size: 10.5px; font-weight: bold; cursor: pointer;
+    }
+    .chip-btn.active { background: #38bdf8; color: #0b0f19; border-color: #38bdf8; }
+
+    /* مسرح تفكيك المربع (Canvas Stage) */
+    .stage-wrapper {
+      position: relative; width: 100%; height: 230px; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex;
+      justify-content: center; align-items: center; overflow: hidden;
+    }
+    canvas { display: block; width: 100%; max-width: 480px; height: 100%; }
+
+    /* أزرار الإجراءات السريعة */
+    .action-row {
+      display: flex; gap: 8px;
+    }
+    .act-btn {
+      flex: 1; background: #10b981; color: white; border: 1px solid #34d399;
+      padding: 9px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; text-align: center;
+    }
+    .act-btn:active { transform: scale(0.96); }
+    .act-btn.reassemble { background: #334155; border-color: #475569; color: #f1f5f9; flex: 0.45; }
+
+    /* محرك الاستخراج النووي والحسابي */
+    .extractor-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .ext-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      padding: 8px 10px; display: flex; flex-direction: column; gap: 3px;
+    }
+    .ext-title { font-size: 10.5px; color: #94a3b8; font-weight: 700; display: flex; justify-content: space-between; }
+    .ext-val { font-size: 15px; font-weight: 800; font-family: monospace; }
+    .val-p { color: #f87171; }
+    .val-e { color: #38bdf8; }
+    .val-n { color: #facc15; }
+    .val-loc { color: #34d399; font-size: 12px; }
+    .ext-note { font-size: 10px; color: #64748b; line-height: 1.3; }
+
+    /* بطاقة الهوية الوطنية للعنصر */
+    .passport-card {
+      display: none; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid #38bdf8; border-radius: 12px; padding: 14px;
+      flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .passport-header {
+      display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 6px;
+    }
+    .passport-title { font-size: 13px; font-weight: 800; color: #38bdf8; }
+    .passport-badge { font-size: 9.5px; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 2px 6px; border-radius: 4px; }
+    .passport-body {
+      display: grid; grid-template-columns: 80px 1fr; gap: 12px; align-items: center;
+    }
+    .passport-photo {
+      height: 80px; background: #0b0f19; border: 1px solid #475569; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .passport-data { display: flex; flex-direction: column; gap: 3px; font-size: 11px; }
+
+    /* واجهة لغز تركيب المربع */
+    .puzzle-view {
+      display: none; background: #111827; border: 1px solid #1f2937; border-radius: 12px;
+      padding: 12px; flex-direction: column; gap: 10px;
+    }
+    .puzzle-slots {
+      display: flex; flex-direction: column; gap: 6px; align-items: center;
+    }
+    .slot-box {
+      width: 220px; height: 36px; border: 2px dashed #475569; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; font-size: 11.5px;
+      font-weight: bold; color: #94a3b8; cursor: pointer; transition: 0.2s;
+    }
+    .slot-box.filled { border-style: solid; border-color: #10b981; background: rgba(16,185,129,0.15); color: #fff; }
+    .puzzle-pieces {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    }
+    .piece-btn {
+      background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 8px; border-radius: 8px; font-size: 11.5px; font-weight: bold;
+      cursor: pointer; text-align: center;
+    }
+    .piece-btn.active { border-color: #38bdf8; background: #0284c7; color: #fff; }
+
+    /* صندوق الشرح العلمي المنهجي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 75px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>مفكك بطاقة ومربع العنصر</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- تبويبات الأوضاع -->
+  <div class="modes-tabs">
+    <button class="mode-btn active" id="btnTabDeconstruct" onclick="setMode('deconstruct')">💥 تفكيك المربع</button>
+    <button class="mode-btn" id="btnTabPassport" onclick="setMode('passport')">🪪 هوية العنصر</button>
+    <button class="mode-btn" id="btnTabPuzzle" onclick="setMode('puzzle')">🧩 تحدي التركيب</button>
+  </div>
+
+  <!-- شريط القائمة الكاملة للـ 118 عنصراً والبحث -->
+  <div class="selector-bar">
+    <span style="font-size:11.5px; font-weight:700; color:#94a3b8;">العنصر:</span>
+    <select id="elementSelect" onchange="onSelectChange(this.value)"></select>
+  </div>
+
+  <!-- شريط النماذج السريعة للكتاب المنهجي (ص 54-55) -->
+  <div class="quick-chips">
+    <button class="chip-btn active" onclick="selectQuick(26)">الحديد (Fe) ص 54</button>
+    <button class="chip-btn" onclick="selectQuick(6)">الكاربون (C) ص 55</button>
+    <button class="chip-btn" onclick="selectQuick(13)">الألمنيوم (Al)</button>
+    <button class="chip-btn" onclick="selectQuick(8)">الأوكسجين (O)</button>
+    <button class="chip-btn" onclick="selectQuick(79)">الذهب (Au)</button>
+    <button class="chip-btn" onclick="selectQuick(11)">الصوديوم (Na)</button>
+  </div>
+
+  <!-- 1. واجهة تفكيك المربع -->
+  <div id="viewDeconstruct" style="display: flex; flex-direction: column; gap: 8px;">
+    <div class="stage-wrapper">
+      <canvas id="tileCanvas" width="480" height="230"></canvas>
+    </div>
+
+    <div class="action-row">
+      <button class="act-btn" id="btnExplode" onclick="toggleExplode()">💥 تفكيك المربع وفصل الأرقام</button>
+      <button class="act-btn reassemble" onclick="resetExplode()">🔄 إعادة تجميع</button>
+    </div>
+
+    <!-- محرك الاستخراج النووي والحسابي -->
+    <div class="extractor-grid">
+      <div class="ext-card">
+        <div class="ext-title">
+          <span>البروتونات الموجبة (p⁺)</span>
+          <span style="color:#f87171;">العدد الذري العلوي</span>
+        </div>
+        <div class="ext-val val-p" id="valProtons">26</div>
+        <div class="ext-note">p⁺ = العدد الذري (Z) دائماً</div>
+      </div>
+
+      <div class="ext-card">
+        <div class="ext-title">
+          <span>الإلكترونات السالبة (e⁻)</span>
+          <span style="color:#38bdf8;">الذرة متعادلة</span>
+        </div>
+        <div class="ext-val val-e" id="valElectrons">26</div>
+        <div class="ext-note">e⁻ = p⁺ لأن شحنة الذرة صفر</div>
+      </div>
+
+      <div class="ext-card">
+        <div class="ext-title">
+          <span>النيوترونات (n⁰)</span>
+          <span style="color:#facc15;">قانون الكتلة ص 55</span>
+        </div>
+        <div class="ext-val val-n" id="valNeutrons">30</div>
+        <div class="ext-note" id="noteNeutrons">56 (مقرب) - 26 = 30</div>
+      </div>
+
+      <div class="ext-card">
+        <div class="ext-title">
+          <span>الموقع والتصنيف</span>
+          <span style="color:#34d399;">في الجدول الدوري</span>
+        </div>
+        <div class="ext-val val-loc" id="valLocation">الدورة 4 • الزمرة 8</div>
+        <div class="ext-note" id="noteCategory">فلز انتقالي صلب</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. واجهة بطاقة الهوية الوطنية للعنصر -->
+  <div class="passport-card" id="viewPassport">
+    <div class="passport-header">
+      <span class="passport-title">🪪 بطاقة الهوية الذرية الرسمية</span>
+      <span class="passport-badge" id="passBadge">عنصر معتمد دولياً</span>
+    </div>
+    <div class="passport-body">
+      <div class="passport-photo">
+        <span id="passPhotoSym" style="font-size:26px; font-weight:800; color:#38bdf8;">Fe</span>
+        <span id="passPhotoZ" style="font-size:10px; color:#f87171; font-family:monospace;">Z = 26</span>
+      </div>
+      <div class="passport-data">
+        <div>الاسم الكامل: <b id="passName" style="color:#fff;">حديد (Iron / Ferrum)</b></div>
+        <div>الرقم الوطني الذري: <b id="passZ" style="color:#f87171; font-family:monospace;">26</b></div>
+        <div>محل الإقامة: <b id="passLoc" style="color:#34d399;">الدورة 4 • الزمرة 8</b></div>
+        <div>الوزن المعتمد: <b id="passMass" style="color:#facc15; font-family:monospace;">55.845 u</b></div>
+        <div style="font-size:10px; color:#94a3b8; margin-top:2px;">
+          الحالة الكيميائية: <span id="passBio" style="color:#cbd5e1;">فلز قابل للطرق والسحب وموصل ممتاز.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. واجهة لغز تركيب المربع -->
+  <div class="puzzle-view" id="viewPuzzle">
+    <div style="font-size:11.5px; font-weight:700; color:#cbd5e1; text-align:center;">
+      حدد كل قطعة كيميائية وضعها في مكانها المنهجي الصحيح داخل المربع:
+    </div>
+    <div class="puzzle-slots">
+      <div class="slot-box" id="slotZ" onclick="placeSlot('z')">1. انقر هنا لوضع: العدد الذري (أعلى)</div>
+      <div class="slot-box" id="slotSym" onclick="placeSlot('sym')">2. انقر هنا لوضع: رمز العنصر (الوسط)</div>
+      <div class="slot-box" id="slotName" onclick="placeSlot('name')">3. انقر هنا لوضع: اسم العنصر (وسط سفلي)</div>
+      <div class="slot-box" id="slotMass" onclick="placeSlot('mass')">4. انقر هنا لوضع: متوسط الكتلة الذرية (القاعدة)</div>
+    </div>
+
+    <div style="font-size:11px; font-weight:700; color:#94a3b8; margin-top:4px;">القطع المتناثرة:</div>
+    <div class="puzzle-pieces" id="puzzlePiecesBox"></div>
+  </div>
+
+  <!-- صندوق التفسير العلمي المنهجي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">مربع العنصر في الجدول الدوري:</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  // قاعدة بيانات كاملة للـ 118 عنصراً
+  // الهيكل: [العدد الذري Z, الرمز, الاسم العربي, الاسم الإنجليزي, الكتلة كرمز, الكتلة المقربة, الدورة, الزمرة, الصنف, نبذة]
+  const ELEMENTS_118 = [
+    [1,"H","هيدروجين","Hydrogen","1.008",1,1,1,"لافلز غازي","أخف وأبسط ذرة في الكون، مدارها يتسع لإلكترون واحد."],
+    [2,"He","هيليوم","Helium","4.003",4,1,18,"غاز خامل","مدارها الأول مكتمل بإلكترونين، خاملة وتملأ بها المناطيد."],
+    [3,"Li","ليثيوم","Lithium","6.94",7,2,1,"فلز قلوي","أخف فلز صلب، نشط جداً ويحفظ تحت الزيت."],
+    [4,"Be","بريليوم","Beryllium","9.012",9,2,2,"فلز قلوي ترابي","فلز صلب رمادي يمتلك إلكترونين في مداره الأخير."],
+    [5,"B","بورون","Boron","10.81",11,2,13,"شبه فلز","يقع في بداية الخط المتعرج، صلب ويدخل بالمعقمات."],
+    [6,"C","كاربون","Carbon","12.011",12,2,14,"لافلز","أساس كيمياء الحياة وله صور متعددة كالفحم والماس."],
+    [7,"N","نتروجين","Nitrogen","14.007",14,2,15,"لافلز غازي","يشكل 78% من حجم الغلاف الجوي للأرض."],
+    [8,"O","أوكسجين","Oxygen","15.999",16,2,16,"لافلز غازي","ضروري لتنفس الكائنات واحتراق الوقود."],
+    [9,"F","فلور","Fluorine","18.998",19,2,17,"هالوجين","أنشط اللافلزات ويميل بشدة لاكتساب إلكترون."],
+    [10,"Ne","نيون","Neon","20.180",20,2,18,"غاز خامل","مداره الثاني مشبع بـ 8 إلكترونات، يضيء بالمصابيح."],
+    [11,"Na","صوديوم","Sodium (Natrium)","22.990",23,3,1,"فلز قلوي","فلز رخو يقطع بالسكين، يتحد بالكلور لصنع ملح الطعام."],
+    [12,"Mg","مغنيسيوم","Magnesium","24.305",24,3,2,"فلز قلوي ترابي","يحترق بلهب أبيض ساطع، ويدخل في تركيب السبائك."],
+    [13,"Al","ألمنيوم","Aluminum","26.982",27,3,13,"فلز","خفيف وموصل ممتاز وقابل للطرق لصنع هياكل الطائرات."],
+    [14,"Si","سيليكون","Silicon","28.086",28,3,14,"شبه فلز","شبه موصل يقع على الخط المتعرج، عماد رقائق الإلكترونيات."],
+    [15,"P","فسفور","Phosphorus","30.974",31,3,15,"لافلز","يدخل في تركيب العظام والأحماض النووية."],
+    [16,"S","كبريت","Sulfur","32.066",32,3,16,"لافلز صلب","مسحوق أصفر وفير في العراق يدخل في صناعة المطاط."],
+    [17,"Cl","كلور","Chlorine","35.453",35,3,17,"هالوجين غازي","غاز سام معقم يتحد مع الفلزات لتكوين الأملاح."],
+    [18,"Ar","آرغون","Argon","39.948",40,3,18,"غاز خامل","خامل كيميائياً يملأ مصابيح التوهج."],
+    [19,"K","بوتاسيوم","Potassium (Kalium)","39.098",39,4,1,"فلز قلوي","فلز نشط جداً يشتعل بلهب بنفسجي مع الماء."],
+    [20,"Ca","كالسيوم","Calcium","40.078",40,4,2,"فلز قلوي ترابي","المكون الأساسي للعظام والأسنان والإسمنت."],
+    [21,"Sc","سكانديوم","Scandium","44.956",45,4,3,"فلز انتقالي","يستخدم في إنتاج سبائك الألمنيوم عالية القوة."],
+    [22,"Ti","تيتانيوم","Titanium","47.867",48,4,4,"فلز انتقالي","شديد الصلابة ومقاوم للتآكل، يستخدم في المفاصل الطبية."],
+    [23,"V","فاناديوم","Vanadium","50.942",51,4,5,"فلز انتقالي","يضاف للفولاذ لجعله فائق القوة ومقاوماً للصدمات."],
+    [24,"Cr","كروم","Chromium","51.996",52,4,6,"فلز انتقالي","يعطي بريقاً مقاوماً للصدأ ويستخدم في طلاء السيارات."],
+    [25,"Mn","منغنيز","Manganese","54.938",55,4,7,"فلز انتقالي","عنصر أساسي في صناعة الفولاذ والبطاريات الجافة."],
+    [26,"Fe","حديد","Iron (Ferrum)","55.845",56,4,8,"فلز انتقالي","عماد الحضارة والصناعة وقابل للمغنطة والطرق (ص 54)."],
+    [27,"Co","كوبلت","Cobalt","58.933",59,4,9,"فلز انتقالي","نظيره المشع يستخدم في علاج الأورام والتعقيم."],
+    [28,"Ni","نيكل","Nickel","58.693",59,4,10,"فلز انتقالي","يقاوم التأكسد ويدخل في صناعة العملات المعدنية والبطاريات."],
+    [29,"Cu","نحاس","Copper (Cuprum)","63.546",64,4,11,"فلز انتقالي","فائق التوصيل للكهرباء والحرارة وتصنع منه الأسلاك."],
+    [30,"Zn","خارصين","Zinc","65.38",65,4,12,"فلز انتقالي","يستخدم في جلفنة الحديد لحمايته من الصدأ."],
+    [31,"Ga","غاليوم","Gallium","69.723",70,4,13,"فلز","يذوب بحرارة اليد وتوقعه مندليف باسم إيكا-ألمنيوم."],
+    [32,"Ge","جرمانيوم","Germanium","72.630",73,4,14,"شبه فلز","توقعه مندليف بدقة مذهلة باسم إيكا-سيليكون."],
+    [33,"As","زرنيخ","Arsenic","74.922",75,4,15,"شبه فلز","شبه فلز رمادي يقع على الخط المتعرج."],
+    [34,"Se","سيلينيوم","Selenium","78.971",79,4,16,"لافلز","حساس للضوء ويدخل في تركيب آلات النسخ والخلايا."],
+    [35,"Br","بروم","Bromine","79.904",80,4,17,"هالوجين سائل","اللافلز الوحيد السائل في درجة حرارة الغرفة."],
+    [36,"Kr","كربتون","Krypton","83.798",84,4,18,"غاز خامل","يختم الدورة الرابعة ويستخدم في أضواء المطارات."],
+    [37,"Rb","روبيديوم","Rubidium","85.468",85,5,1,"فلز قلوي","شديد التفاعل ويستخدم في الساعات الذرية."],
+    [38,"Sr","سترونشيوم","Strontium","87.62",88,5,2,"فلز قلوي ترابي","يعطي اللهب الأحمر الزاهي في الألعاب النارية."],
+    [39,"Y","إتريوم","Yttrium","88.906",89,5,3,"فلز انتقالي","يدخل في صناعة موصلات فائقة وشاشات LED."],
+    [40,"Zr","زركونيوم","Zirconium","91.224",91,5,4,"فلز انتقالي","يقاوم الحرارة القصوى ويستخدم في المفاعلات النووية."],
+    [41,"Nb","نيوبيوم","Niobium","92.906",93,5,5,"فلز انتقالي","يدخل في تصنيع مغناطيسات أجهزة الرنين المغناطيسي MRI."],
+    [42,"Mo","موليبدنوم","Molybdenum","95.95",96,5,6,"فلز انتقالي","يتحمل درجات الانصهار العالية جداً في المحركات."],
+    [43,"Tc","تكنيشيوم","Technetium","98.0",98,5,7,"عنصر مشع","أول عنصر ينتج صناعياً في المختبرات الطبية."],
+    [44,"Ru","روثينيوم","Ruthenium","101.07",101,5,8,"فلز بلاتيني","نادر ومقاوم للتآكل في التوصيلات الكهربائية."],
+    [45,"Rh","روديوم","Rhodium","102.91",103,5,9,"فلز بلاتيني","من أغلى المعادن، يحفز تقليل انبعاثات عوادم السيارات."],
+    [46,"Pd","بلاديوم","Palladium","106.42",106,5,10,"فلز بلاتيني","يمتص غاز الهيدروجين كالإسفنج ويستخدم بالصناعة."],
+    [47,"Ag","فضة","Silver (Argentum)","107.87",108,5,11,"فلز نفيس","أعلى المعادن توصيلاً للكهرباء ومضاد للبكتيريا."],
+    [48,"Cd","كادميوم","Cadmium","112.41",112,5,12,"فلز","يستخدم في بطاريات النيكل-كادميوم القابلة للشحن."],
+    [49,"In","إنديوم","Indium","114.82",115,5,13,"فلز لين","يدخل في صناعة الشاشات التي تعمل باللمس."],
+    [50,"Sn","قصدير","Tin (Stannum)","118.71",119,5,14,"فلز","يطلى به الحديد لصنع علب حفظ الأغذية."],
+    [51,"Sb","إثمد","Antimony (Stibium)","121.76",122,5,15,"شبه فلز","استخدمه القدماء في صناعة الكحل العربي."],
+    [52,"Te","تيلوريوم","Tellurium","127.60",128,5,16,"شبه فلز","يقع على الخط المتعرج، هش ويدخل بالألواح الشمسية."],
+    [53,"I","يود","Iodine","126.90",127,5,17,"هالوجين صلب","صلب بنفسجي داكن، ضروري لعمل الغدة الدرقية."],
+    [54,"Xe","زينون","Xenon","131.29",131,5,18,"غاز خامل","يستخدم في مصابيح السيارات الكاشفة ومحركات الدفع الأيوني."],
+    [55,"Cs","سيزيوم","Cesium","132.91",133,6,1,"فلز قلوي","المعيار العالمي لتحديد الثانية في الساعات الذرية."],
+    [56,"Ba","باريوم","Barium","137.33",137,6,2,"فلز قلوي ترابي","يستخدم كمركب تباين في تصوير الجهاز الهضمي بالأشعة."],
+    [57,"La","لانثانوم","Lanthanum","138.91",139,6,3,"لانثانيد","رأس سلسلة العناصر الأرضية النادرة."],
+    [58,"Ce","سيريوم","Cerium","140.12",140,6,3,"لانثانيد","يدخل في صناعة زجاج التلميع وحجارة القداحات."],
+    [59,"Pr","براسوديميوم","Praseodymium","140.91",141,6,3,"لانثانيد","يستخدم في نظارات حماية عمال اللحام."],
+    [60,"Nd","نيوديميوم","Neodymium","144.24",144,6,3,"لانثانيد","يصنع منه أقوى المغناطيسات الدائمة في العالم."],
+    [61,"Pm","بروميثيوم","Promethium","145.0",145,6,3,"لانثانيد مشع","يستخدم في إضاءة مؤشرات ساعات الغواصين."],
+    [62,"Sm","ساماريوم","Samarium","150.36",150,6,3,"لانثانيد","يتحمل درجات الحرارة في مغناطيسات المحركات النفاثة."],
+    [63,"Eu","يوروبيوم","Europium","151.96",152,6,3,"لانثانيد","يعطي اللون الأحمر المتوهج في فحص العملات الورقية."],
+    [64,"Gd","غادولينيوم","Gadolinium","157.25",157,6,3,"لانثانيد","يستخدم كصبغة تباين في فحوصات الرنين MRI."],
+    [65,"Tb","تيربيوم","Terbium","158.93",159,6,3,"لانثانيد","يعطي التوهج الأخضر في شاشات التلفاز الحديثة."],
+    [66,"Dy","ديسبروسيوم","Dysprosium","162.50",163,6,3,"لانثانيد","يقاوم إزالة المغنطة في سيارات الدفع الكهربائي."],
+    [67,"Ho","هولميوم","Holmium","164.93",165,6,3,"لانثانيد","يستخدم في أجهزة ليزر الجراحة الطبية الدقيقة."],
+    [68,"Er","إربيوم","Erbium","167.26",167,6,3,"لانثانيد","يضخم إشارات الإنترنت الضوئية عبر كابلات البحار."],
+    [69,"Tm","ثوليوم","Thulium","168.93",169,6,3,"لانثانيد","مصدر إشعاعي لأجهزة الأشعة السينية المحمولة."],
+    [70,"Yb","إيتربيوم","Ytterbium","173.05",173,6,3,"لانثانيد","يستخدم في الساعات الذرية البصرية فائقة الدقة."],
+    [71,"Lu","لوتيتيوم","Lutetium","174.97",175,6,3,"لانثانيد","أثقل وأصلب عناصر سلسلة اللانثانيدات."],
+    [72,"Hf","هافنيوم","Hafnium","178.49",178,6,4,"فلز انتقالي","يمتص النيوترونات ويستخدم في قضبان التحكم بالمفاعلات."],
+    [73,"Ta","تانتالوم","Tantalum","180.95",181,6,5,"فلز انتقالي","مقاوم للأحماض ويدخل في مكثفات الهواتف الذكية."],
+    [74,"W","تنغستن","Tungsten (Wolfram)","183.84",184,6,6,"فلز انتقالي","أعلى نقطة انصهار لفلز (3422°C)، يصنع منه فتيل المصابيح."],
+    [75,"Re","رينيوم","Rhenium","186.21",186,6,7,"فلز انتقالي","يتحمل درجات الاحتراق الهائلة في توربينات الطائرات."],
+    [76,"Os","أوزميوم","Osmium","190.23",190,6,8,"فلز انتقالي","أكثف عنصر طبيعي على كوكب الأرض على الإطلاق."],
+    [77,"Ir","إيريديوم","Iridium","192.22",192,6,9,"فلز انتقالي","أكثر الفلزات مقاومة للتآكل، صنع منه الكيلوغرام المعياري."],
+    [78,"Pt","بلاتين","Platinum","195.08",195,6,10,"فلز نفيس","ذهب أبيض نبيل يستخدم في المجوهرات ومحولات العوادم."],
+    [79,"Au","ذهب","Gold (Aurum)","196.97",197,6,11,"فلز نفيس","لا يصدأ وموصل فائق ومعدن الزينة والاحتياط النقدي."],
+    [80,"Hg","زئبق","Mercury (Hydrargyrum)","200.59",201,6,12,"فلز سائل","الفلز الوحيد الذي يوجد بحالة سائلة بحرارة الغرفة."],
+    [81,"Tl","ثاليوم","Thallium","204.38",204,6,13,"فلز","فلز لين شديد السمية استخدم قديماً في مكافحة القوارض."],
+    [82,"Pb","رصاص","Lead (Plumbum)","207.2",207,6,14,"فلز ثقيل","يحجب الإشعاعات الضارة ويدخل في بطاريات السيارات."],
+    [83,"Bi","بزموت","Bismuth","208.98",209,6,15,"فلز","بلوراته قوس قزح، يدخل في أدوية المعدة والحموضة."],
+    [84,"Po","بولونيوم","Polonium","209.0",209,6,16,"شبه فلز مشع","اكتشفته ماري كوري وأطلقت عليه اسم موطنها بولندا."],
+    [85,"At","أستاتين","Astatine","210.0",210,6,17,"هالوجين مشع","أندر عنصر طبيعي في القشرة الأرضية."],
+    [86,"Rn","رادون","Radon","222.0",222,6,18,"غاز خامل مشع","غاز مشع طبيعي يتسرب من صخور الجرانيت."],
+    [87,"Fr","فرانسيوم","Francium","223.0",223,7,1,"فلز قلوي مشع","شديد النشاط والندرة، يتحلل بعد دقائق."],
+    [88,"Ra","راديوم","Radium","226.0",226,7,2,"فلز قلوي مشع","اكتشفته ماري كوري وتوهجه كان يستخدم بالساعات."],
+    [89,"Ac","أكتينيوم","Actinium","227.0",227,7,3,"أكتينيد","يتوهج بضوء أزرق باهت في الظلام لإشعاعه القوي."],
+    [90,"Th","ثوريوم","Thorium","232.04",232,7,3,"أكتينيد","وقود نووي واعد أكثر أماناً ووفرة من اليورانيوم."],
+    [91,"Pa","بروتكتينيوم","Protactinium","231.04",231,7,3,"أكتينيد","عنصر مشع نادر ينتج عن تحلل اليورانيوم."],
+    [92,"U","يورانيوم","Uranium","238.03",238,7,3,"أكتينيد","الوقود النووي الأساسي لتوليد الطاقة الكهربائية بالمحطات."],
+    [93,"Np","نبتونيوم","Neptunium","237.0",237,7,3,"أكتينيد صناعي","أول عنصر عبر يورانيومي اكتشف عام 1940."],
+    [94,"Pu","بلوتونيوم","Plutonium","244.0",244,7,3,"أكتينيد","يستخدم كوقود لمسابير الفضاء السحيق لبطارياته الحرارية."],
+    [95,"Am","أمريسيوم","Americium","243.0",243,7,3,"أكتينيد","يوجد بكمية ضئيلة في كواشف الدخان المنزلية."],
+    [96,"Cm","كوريوم","Curium","247.0",247,7,3,"أكتينيد","سمي تكريماً للعالمين ماري وبيير كوري."],
+    [97,"Bk","بركليوم","Berkelium","247.0",247,7,3,"أكتينيد","سمي نسبة لجامعة كاليفورنيا في بيركلي."],
+    [98,"Cf","كاليفورنيوم","Californium","251.0",251,7,3,"أكتينيد","باعث قوي جداً للنيوترونات للكشف عن الذهب والنفط."],
+    [99,"Es","أينشتاينيوم","Einsteinium","252.0",252,7,3,"أكتينيد","سمي تكريماً لعالم الفيزياء ألبرت أينشتاين."],
+    [100,"Fm","فيرميوم","Fermium","257.0",257,7,3,"أكتينيد","سمي تكريماً لإنريكو فيرمي رائد المفاعل النووي."],
+    [101,"Md","مندليفيوم","Mendelevium","258.0",258,7,3,"أكتينيد","سمي تكريماً لمندليف واضع الجدول الدوري الأول."],
+    [102,"No","نوبليوم","Nobelium","259.0",259,7,3,"أكتينيد","سمي تكريماً لألفريد نوبل مخترع الديناميت."],
+    [103,"Lr","لورنسيوم","Lawrencium","266.0",266,7,3,"أكتينيد","سمي تكريماً لمخترع مسرع السيكلوترون."],
+    [104,"Rf","رذرفورديوم","Rutherfordium","267.0",267,7,4,"فلز انتقالي فائق","سمي تكريماً لإرنست رذرفورد مكتشف نواة الذرة."],
+    [105,"Db","دوبنيوم","Dubnium","268.0",268,7,5,"فلز انتقالي فائق","سمي نسبة لمركز الأبحاث النووية في دوبنا بروسيا."],
+    [106,"Sg","سيبورغيوم","Seaborgium","269.0",269,7,6,"فلز انتقالي فائق","سمي نسبة لغلين سيبورغ مكتشف عناصر عبر اليورانيوم."],
+    [107,"Bh","بوريوم","Bohrium","270.0",270,7,7,"فلز انتقالي فائق","سمي تكريماً لنيلز بور واضع نموذج المدارات الذرية."],
+    [108,"Hs","هاسيوم","Hassium","269.0",270,7,8,"فلز انتقالي فائق","سمي نسبة لولاية هيسن الألمانية."],
+    [109,"Mt","مايتنريوم","Meitnerium","278.0",278,7,9,"فلز انتقالي فائق","سمي تكريماً لعالمة الفيزياء ليز مايتنر."],
+    [110,"Ds","دارمشتاتيوم","Darmstadtium","281.0",281,7,10,"فلز انتقالي فائق","سمي نسبة لمدينة دارمشتات بألمانيا."],
+    [111,"Rg","رونتجينيوم","Roentgenium","282.0",282,7,11,"فلز انتقالي فائق","سمي تكريماً لرونتجن مكتشف الأشعة السينية."],
+    [112,"Cn","كوبرنيسيوم","Copernicium","285.0",285,7,12,"فلز فائق","سمي تكريماً للعالم الفلكي نيكولاس كوبرنيكوس."],
+    [113,"Nh","نيهونيوم","Nihonium","286.0",286,7,13,"فلز فائق","أول عنصر يكتشف في آسيا، سمي تيمناً باليابان (نيهون)."],
+    [114,"Fl","فليروفيوم","Flerovium","289.0",289,7,14,"فلز فائق","سمي تكريماً لمختبر فليروف للبحوث النووية."],
+    [115,"Mc","موسكوفيوم","Moscovium","290.0",290,7,15,"فلز فائق","سمي نسبة لمنطقة موسكو حيث تم تخليقه."],
+    [116,"Lv","ليفرموريوم","Livermorium","293.0",293,7,16,"فلز فائق","سمي نسبة لمختبر لورانس ليفرمور بكاليفورنيا."],
+    [117,"Ts","تينيسين","Tennessine","294.0",294,7,17,"هالوجين فائق","سمي نسبة لولاية تينيسي الأمريكية ومختبر أوك ردج."],
+    [118,"Og","أوغانيسون","Oganesson","294.0",294,7,18,"غاز خامل فائق","أثقل عنصر معروف في الجدول الدوري ويختم الدورة السابعة."]
+  ];
+
+  let currentElement = ELEMENTS_118[25]; // Fe افتراضياً (الحديد ص 54)
+  let currentMode = "deconstruct";
+  let explodeProgress = 0; // 0 = مجمع, 1 = مفكك
+  let isExploding = false;
+
+  // توليد أصوات فيزيائية عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+
+    if (type === "swoosh") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+      g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    } else if (type === "click") {
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+    } else if (type === "win") {
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(784, audioCtx.currentTime + 0.2);
+      g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+    }
+  }
+
+  // ملء قائمة الـ 118 عنصراً في السيلكت
+  function populateSelect() {
+    const sel = document.getElementById("elementSelect");
+    sel.innerHTML = "";
+    ELEMENTS_118.forEach(el => {
+      const opt = document.createElement("option");
+      opt.value = el[0];
+      opt.innerText = `${el[0]}. ${el[2]} (${el[1]}) - ${el[3]}`;
+      if (el[0] === currentElement[0]) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function onSelectChange(zVal) {
+    const z = parseInt(zVal);
+    const found = ELEMENTS_118.find(e => e[0] === z);
+    if (found) loadElement(found);
+  }
+
+  function selectQuick(z) {
+    const found = ELEMENTS_118.find(e => e[0] === z);
+    if (found) {
+      document.querySelectorAll(".chip-btn").forEach(c => c.classList.remove("active"));
+      event.target.classList.add("active");
+      loadElement(found);
+    }
+  }
+
+  function loadElement(el) {
+    currentElement = el;
+    document.getElementById("elementSelect").value = el[0];
+    playSound("click");
+    updateExtractorData();
+    updatePassportData();
+    if (currentMode === "puzzle") initPuzzle();
+  }
+
+  // تحديث محرك الاستخراج النووي والحسابي
+  function updateExtractorData() {
+    const el = currentElement;
+    const z = el[0];
+    const roundedA = el[5];
+    const neutrons = roundedA - z;
+
+    document.getElementById("valProtons").innerText = z;
+    document.getElementById("valElectrons").innerText = z;
+    document.getElementById("valNeutrons").innerText = neutrons;
+    document.getElementById("noteNeutrons").innerText = `${roundedA} (مقرب) - ${z} = ${neutrons}`;
+
+    document.getElementById("valLocation").innerText = `الدورة ${el[6]} • الزمرة ${el[7]}`;
+    document.getElementById("noteCategory").innerText = el[8];
+
+    // صندوق الشرح
+    document.getElementById("infoTitle").innerText = `تشريح مربع عنصر ${el[2]} (${el[1]}):`;
+    document.getElementById("infoText").innerHTML = `
+      <b>قاعدة المنهج ص 54-55:</b><br>
+      • <b>الرقم العلوي (${z}):</b> هو العدد الذري ويمثل عدد البروتونات الموجبة والإلكترونات السالبة.<br>
+      • <b>الرمز (${el[1]}):</b> مشتق من الاسم اللاتيني/الإنجليزي (${el[3]}).<br>
+      • <b>الرقم السفلي (${el[4]}):</b> هو متوسط الكتلة الذرية، ويقرب إلى (${roundedA}) لاستخراج النيوترونات: ${roundedA} - ${z} = <b>${neutrons} نيوترون</b>.
+    `;
+  }
+
+  // تحديث بيانات الهوية
+  function updatePassportData() {
+    const el = currentElement;
+    document.getElementById("passPhotoSym").innerText = el[1];
+    document.getElementById("passPhotoZ").innerText = `Z = ${el[0]}`;
+    document.getElementById("passName").innerText = `${el[2]} (${el[3]})`;
+    document.getElementById("passZ").innerText = el[0];
+    document.getElementById("passLoc").innerText = `الدورة ${el[6]} • الزمرة ${el[7]}`;
+    document.getElementById("passMass").innerText = `${el[4]} u`;
+    document.getElementById("passBio").innerText = `${el[8]} - ${el[9]}`;
+  }
+
+  // التبديل بين الأوضاع
+  function setMode(m) {
+    currentMode = m;
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("viewDeconstruct").style.display = "none";
+    document.getElementById("viewPassport").style.display = "none";
+    document.getElementById("viewPuzzle").style.display = "none";
+
+    playSound("click");
+
+    if (m === "deconstruct") {
+      document.getElementById("btnTabDeconstruct").classList.add("active");
+      document.getElementById("viewDeconstruct").style.display = "flex";
+      updateExtractorData();
+    } else if (m === "passport") {
+      document.getElementById("btnTabPassport").classList.add("active");
+      document.getElementById("viewPassport").style.display = "flex";
+      updatePassportData();
+    } else if (m === "puzzle") {
+      document.getElementById("btnTabPuzzle").classList.add("active");
+      document.getElementById("viewPuzzle").style.display = "flex";
+      initPuzzle();
+    }
+  }
+
+  function toggleExplode() {
+    isExploding = !isExploding;
+    playSound("swoosh");
+  }
+
+  function resetExplode() {
+    isExploding = false;
+    explodeProgress = 0;
+    playSound("click");
+  }
+
+  // --- محرك رسم وتفكيك المربع (Canvas Engine) ---
+  const canvas = document.getElementById("tileCanvas");
+  const ctx = canvas.getContext("2d");
+
+  function renderTile() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // تحريك التفكيك بسلاسة
+    if (isExploding && explodeProgress < 1) {
+      explodeProgress = Math.min(1, explodeProgress + 0.05);
+    } else if (!isExploding && explodeProgress > 0) {
+      explodeProgress = Math.max(0, explodeProgress - 0.06);
+    }
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const el = currentElement;
+
+    const p = explodeProgress; // 0 -> 1
+
+    // إزاحات التفكيك الأربع
+    const topY = cy - 42 - p * 45;      // العدد الذري يصعد
+    const symY = cy - 6;                 // الرمز في المركز
+    const nameY = cy + 22 + p * 25;      // الاسم ينزل قليلاً
+    const massY = cy + 45 + p * 50;      // الكتلة تهبط للقاعدة
+
+    // رسم مربع العنصر الأصلي بخلفية فخمة
+    ctx.save();
+    ctx.fillStyle = `rgba(30, 41, 59, ${0.9 - p * 0.4})`;
+    ctx.strokeStyle = p > 0.1 ? "rgba(56, 189, 248, 0.4)" : "#38bdf8";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(cx - 75, cy - 70, 150, 140, 12);
+    ctx.fill(); ctx.stroke();
+
+    // خطوط الإشارة التوضيحية عند التفكيك
+    if (p > 0.3) {
+      ctx.strokeStyle = "rgba(250, 204, 21, 0.35)"; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+      // خط لأعلى
+      ctx.beginPath(); ctx.moveTo(cx, cy - 70); ctx.lineTo(cx, topY); ctx.stroke();
+      // خط لأسفل
+      ctx.beginPath(); ctx.moveTo(cx, cy + 70); ctx.lineTo(cx, massY); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // 1. العدد الذري Z (أعلى)
+    drawDataChip(cx, topY, `${el[0]} (العدد الذري Z)`, "#f87171", p);
+
+    // 2. الرمز الكيميائي Symbol (الوسط)
+    ctx.save();
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = `bold ${32 + p * 6}px monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = "#38bdf8";
+    ctx.shadowBlur = p * 15;
+    ctx.fillText(el[1], cx, symY);
+    ctx.restore();
+
+    // 3. اسم العنصر (عربي / إنجليزي)
+    drawDataChip(cx, nameY, `${el[2]} - ${el[3]}`, "#38bdf8", p);
+
+    // 4. متوسط الكتلة الذرية A (القاعدة)
+    drawDataChip(cx, massY, `${el[4]} u (متوسط الكتلة)`, "#facc15", p);
+
+    ctx.restore();
+    requestAnimationFrame(renderTile);
+  }
+
+  function drawDataChip(x, y, text, color, p) {
+    ctx.save();
+    ctx.fillStyle = p > 0.2 ? "rgba(15, 23, 42, 0.95)" : "transparent";
+    ctx.strokeStyle = p > 0.2 ? color : "transparent";
+    ctx.lineWidth = 1.5;
+
+    ctx.font = "bold 11px 'Cairo', monospace";
+    const w = ctx.measureText(text).width + 16;
+    const h = 22;
+
+    if (p > 0.2) {
+      ctx.beginPath();
+      ctx.roundRect(x - w / 2, y - h / 2, w, h, 6);
+      ctx.fill(); ctx.stroke();
+    }
+
+    ctx.fillStyle = p > 0.2 ? color : (color === "#f87171" ? "#f87171" : (color === "#facc15" ? "#facc15" : "#cbd5e1"));
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  // --- وضع لغز تركيب المربع (Tile Puzzle Challenge) ---
+  let puzzleState = { z: false, sym: false, name: false, mass: false };
+  let selectedPiece = null;
+
+  function initPuzzle() {
+    puzzleState = { z: false, sym: false, name: false, mass: false };
+    selectedPiece = null;
+
+    ["slotZ", "slotSym", "slotName", "slotMass"].forEach(id => {
+      const el = document.getElementById(id);
+      el.className = "slot-box";
+    });
+    document.getElementById("slotZ").innerText = "1. انقر هنا لوضع: العدد الذري (أعلى المربع)";
+    document.getElementById("slotSym").innerText = "2. انقر هنا لوضع: رمز العنصر (الوسط)";
+    document.getElementById("slotName").innerText = "3. انقر هنا لوضع: اسم العنصر (وسط سفلي)";
+    document.getElementById("slotMass").innerText = "4. انقر هنا لوضع: متوسط الكتلة الذرية (القاعدة)";
+
+    // إنشاء القطع المتناثرة
+    const box = document.getElementById("puzzlePiecesBox");
+    box.innerHTML = "";
+
+    const el = currentElement;
+    const pieces = [
+      { type: "z", text: `الرقم: ${el[0]}` },
+      { type: "sym", text: `الرمز: ${el[1]}` },
+      { type: "name", text: `الاسم: ${el[2]}` },
+      { type: "mass", text: `الكتلة: ${el[4]}` }
+    ].sort(() => Math.random() - 0.5); // خلط عشوائي
+
+    pieces.forEach(p => {
+      const btn = document.createElement("button");
+      btn.className = "piece-btn";
+      btn.innerText = p.text;
+      btn.onclick = () => selectPiece(p, btn);
+      box.appendChild(btn);
+    });
+
+    document.getElementById("infoTitle").innerText = `تحدي تركيب مربع: ${el[2]}`;
+    document.getElementById("infoText").innerHTML = "انقر على إحدى القطع بالأسفل أولاً، ثم انقر على الخانة المنهجية المناسبة لها داخل المربع.";
+  }
+
+  function selectPiece(p, btn) {
+    selectedPiece = p;
+    document.querySelectorAll(".piece-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    playSound("click");
+  }
+
+  function placeSlot(slotType) {
+    if (!selectedPiece) {
+      alert("اختر إحدى القطع من الأسفل أولاً بالضغط عليها!");
+      return;
+    }
+
+    if (selectedPiece.type === slotType) {
+      playSound("win");
+      puzzleState[slotType] = true;
+
+      const slotEl = document.getElementById(`slot${slotType.charAt(0).toUpperCase() + slotType.slice(1)}`);
+      slotEl.classList.add("filled");
+      slotEl.innerText = `✓ تم التركيب بنجاح: ${selectedPiece.text}`;
+
+      // إخفاء القطعة المستخدمة
+      document.querySelectorAll(".piece-btn").forEach(b => {
+        if (b.innerText === selectedPiece.text) b.style.visibility = "hidden";
+      });
+      selectedPiece = null;
+
+      // فحص اكتمال المربع
+      if (puzzleState.z && puzzleState.sym && puzzleState.name && puzzleState.mass) {
+        playSound("win");
+        document.getElementById("infoTitle").innerText = "أحسنت! اكتمل تركيب المربع بالكامل 🎉";
+        document.getElementById("infoText").innerHTML = `<b>ممتاز جداً!</b> تم ترتيب العدد الذري أعلى المربع، والرمز بالوسط، والاسم بالأسفل، والكتلة الذرية بالقاعدة وفق الأصول العلمية لكتاب الكيمياء ص 54.`;
+      }
+    } else {
+      playSound("swoosh");
+      alert("مكان غير صحيح منهجياً! تذكر: العدد الذري في الأعلى، والرمز في الوسط، والاسم أسفله، والكتلة الذرية في القاعدة.");
+    }
+  }
+
+  // التهيئة والتشغيل
+  populateSelect();
+  updateExtractorData();
+  updatePassportData();
+  requestAnimationFrame(renderTile);
+</script>
+</body>
+</html>
