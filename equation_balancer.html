@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ميزان موازنة المعادلات الكيميائية | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 10px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع والترويسة */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* شريط اختيار المعادلات الـ 12 */
+    .selector-bar {
+      display: flex; gap: 6px; align-items: center; background: #1e293b;
+      padding: 6px 10px; border-radius: 10px; border: 1px solid #334155;
+    }
+    .selector-bar select {
+      flex: 1; background: #0f172a; color: #f8fafc; border: 1px solid #475569;
+      padding: 6px 8px; border-radius: 6px; font-size: 12px; font-weight: bold;
+      font-family: 'Cairo', sans-serif; outline: none;
+    }
+
+    /* شريط تصنيفات الصعوبة السريع */
+    .level-chips {
+      display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+    }
+    .level-chips::-webkit-scrollbar { display: none; }
+    .chip-btn {
+      flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 4px 10px; border-radius: 7px; font-size: 10.5px; font-weight: bold; cursor: pointer;
+    }
+    .chip-btn.active { background: #38bdf8; color: #0b0f19; border-color: #38bdf8; }
+
+    /* مسرح الكانفاس لميزان الكفتين */
+    .balance-wrapper {
+      position: relative; width: 100%; height: 210px; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex;
+      justify-content: center; align-items: center; overflow: hidden;
+    }
+    canvas { display: block; width: 100%; max-width: 500px; height: 100%; }
+
+    /* بطاقة شريط المعادلة التفاعلية مع أزرار المعاملات */
+    .equation-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+      padding: 12px 8px; display: flex; align-items: center; justify-content: center;
+      gap: 6px; flex-wrap: wrap; direction: ltr;
+    }
+    .term-box {
+      display: inline-flex; align-items: center; gap: 4px; background: #0f172a;
+      padding: 4px 6px; border-radius: 8px; border: 1px solid #334155;
+    }
+    .stepper {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .step-btn {
+      width: 22px; height: 16px; background: #334155; border: none; border-radius: 3px;
+      color: #38bdf8; font-size: 11px; font-weight: bold; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; line-height: 1;
+    }
+    .step-btn:active { background: #0284c7; color: #fff; }
+    .coeff-num {
+      font-size: 18px; font-weight: 800; font-family: monospace; color: #facc15;
+      min-width: 18px; text-align: center;
+    }
+    .formula-txt {
+      font-size: 16px; font-weight: 800; color: #f8fafc; font-family: 'Cairo', sans-serif;
+    }
+    .subscript { font-size: 11px; vertical-align: sub; }
+    .eq-symbol { font-size: 18px; font-weight: 800; color: #94a3b8; margin: 0 2px; }
+    .eq-arrow { font-size: 20px; font-weight: 800; color: #10b981; margin: 0 4px; }
+
+    /* لوحة الفحص الذري لكل عنصر */
+    .audit-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px;
+    }
+    .audit-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+      padding: 6px 10px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .audit-sym { font-size: 13px; font-weight: 800; }
+    .audit-counts { font-size: 13px; font-weight: 800; font-family: monospace; display: flex; align-items: center; gap: 6px; }
+    .status-badge { font-size: 11px; }
+
+    /* صندوق الشرح العلمي المنهجي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 75px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+
+    /* رسالة التهنئة والنجاح عند الموازنة */
+    .success-banner {
+      display: none; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981;
+      border-radius: 8px; padding: 8px; text-align: center; color: #34d399; font-weight: 800; font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>ميزان موازنة المعادلات الكيميائية</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- قائمة اختيار المعادلات الـ 12 -->
+  <div class="selector-bar">
+    <span style="font-size:11.5px; font-weight:700; color:#94a3b8;">المعادلة:</span>
+    <select id="eqSelect" onchange="loadEquation(this.value)"></select>
+  </div>
+
+  <!-- فلاتر سريعة -->
+  <div class="level-chips">
+    <button class="chip-btn active" onclick="filterByLevel('all')">الكل (12 معادلة)</button>
+    <button class="chip-btn" onclick="filterByLevel('easy')">🟢 مستوى بسيط</button>
+    <button class="chip-btn" onclick="filterByLevel('med')">🟡 مستوى متوسط</button>
+    <button class="chip-btn" onclick="filterByLevel('hard')">🔴 مستوى متقدم</button>
+  </div>
+
+  <!-- مسرح الميزان الفيزيائي ثلاثي الأبعاد -->
+  <div class="balance-wrapper">
+    <canvas id="balanceCanvas" width="500" height="210"></canvas>
+  </div>
+
+  <!-- راية النجاح عند اكتمال التوازن -->
+  <div class="success-banner" id="successBanner">
+    🎉 أحسنت! تحققت الموازنة الدقيقة وطُبق قانون حفظ الكتلة بنجاح.
+  </div>
+
+  <!-- بطاقة التفاعل والمعاملات التفاعلية -->
+  <div class="equation-card" id="eqCard"></div>
+
+  <!-- لوحة تدقيق ذرات كل عنصر -->
+  <div class="audit-grid" id="auditGrid"></div>
+
+  <!-- صندوق التفسير العلمي المنهجي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">قانون حفظ الكتلة (ص 76):</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  // ألوان كرات العناصر المتفق عليها كيميائياً
+  const ATOM_COLORS = {
+    H: "#38bdf8", O: "#ef4444", N: "#3b82f6", C: "#64748b",
+    Cl: "#22c55e", Na: "#a855f7", Mg: "#f59e0b", Fe: "#e2e8f0",
+    K: "#c084fc", P: "#fb923c", Zn: "#94a3b8", S: "#facc15"
+  };
+
+  // قاعدة بيانات 12 معادلة منهجية متدرجة الصعوبة (ص 76-84)
+  const EQUATIONS = [
+    {
+      id: 0, title: "1. تكوين الماء (H₂O)", level: "easy",
+      reactants: [ { f: "H₂", atoms: { H: 2 }, c: 1 }, { f: "O₂", atoms: { O: 2 }, c: 1 } ],
+      products: [ { f: "H₂O", atoms: { H: 2, O: 1 }, c: 1 } ],
+      solution: [2, 1, 2],
+      desc: "يتحد غاز الهيدروجين مع غاز الأوكسجين لتكوين الماء. نحتاج جزيئين من الهيدروجين ليتعادلا مع ذرتي الأوكسجين: <b>2H₂ + O₂ ➔ 2H₂O</b>."
+    },
+    {
+      id: 1, title: "2. تكوين غاز الأمونيا (NH₃)", level: "easy",
+      reactants: [ { f: "N₂", atoms: { N: 2 }, c: 1 }, { f: "H₂", atoms: { H: 2 }, c: 1 } ],
+      products: [ { f: "NH₃", atoms: { N: 1, H: 3 }, c: 1 } ],
+      solution: [1, 3, 2],
+      desc: "اتحاد النيتروجين مع الهيدروجين؛ ذرتان من النيتروجين تتطلبان جزيئين من الأمونيا، مما يجعل الهيدروجين 6 ذرات في الطرفين: <b>N₂ + 3H₂ ➔ 2NH₃</b>."
+    },
+    {
+      id: 2, title: "3. تكوين كلوريد الهيدروجين (HCl)", level: "easy",
+      reactants: [ { f: "H₂", atoms: { H: 2 }, c: 1 }, { f: "Cl₂", atoms: { Cl: 2 }, c: 1 } ],
+      products: [ { f: "HCl", atoms: { H: 1, Cl: 1 }, c: 1 } ],
+      solution: [1, 1, 2],
+      desc: "تفاعل جزيء ثنائي الذرة من الهيدروجين مع جزيء ثنائي الذرة من الكلور لإنتاج جزيئين من حمض الهيدروكلوريك: <b>H₂ + Cl₂ ➔ 2HCl</b>."
+    },
+    {
+      id: 3, title: "4. احتراق غاز الميثان (CH₄)", level: "med",
+      reactants: [ { f: "CH₄", atoms: { C: 1, H: 4 }, c: 1 }, { f: "O₂", atoms: { O: 2 }, c: 1 } ],
+      products: [ { f: "CO₂", atoms: { C: 1, O: 2 }, c: 1 }, { f: "H₂O", atoms: { H: 2, O: 1 }, c: 1 } ],
+      solution: [1, 2, 1, 2],
+      desc: "احتراق الغاز الطبيعي بوجود الأوكسجين لإنتاج ثاني أكسيد الكربون وبخار الماء وطاقة حرارية: <b>CH₄ + 2O₂ ➔ CO₂ + 2H₂O</b>."
+    },
+    {
+      id: 4, title: "5. احتراق شريط المغنيسيوم (Mg)", level: "easy",
+      reactants: [ { f: "Mg", atoms: { Mg: 1 }, c: 1 }, { f: "O₂", atoms: { O: 2 }, c: 1 } ],
+      products: [ { f: "MgO", atoms: { Mg: 1, O: 1 }, c: 1 } ],
+      solution: [2, 1, 2],
+      desc: "احتراق فلز المغنيسيوم بوميض أبيض ناصع لتكوين مسحوق أكسيد المغنيسيوم الأبيض (ص 78): <b>2Mg + O₂ ➔ 2MgO</b>."
+    },
+    {
+      id: 5, title: "6. تكوين ملح الطعام (NaCl)", level: "easy",
+      reactants: [ { f: "Na", atoms: { Na: 1 }, c: 1 }, { f: "Cl₂", atoms: { Cl: 2 }, c: 1 } ],
+      products: [ { f: "NaCl", atoms: { Na: 1, Cl: 1 }, c: 1 } ],
+      solution: [2, 1, 2],
+      desc: "اتحاد فلز الصوديوم النشط مع غاز الكلور السام لتكوين ملح طعام آمن ومتعادل كهربائياً: <b>2Na + Cl₂ ➔ 2NaCl</b>."
+    },
+    {
+      id: 6, title: "7. صدأ وأكسدة الحديد (Fe)", level: "hard",
+      reactants: [ { f: "Fe", atoms: { Fe: 1 }, c: 1 }, { f: "O₂", atoms: { O: 2 }, c: 1 } ],
+      products: [ { f: "Fe₂O₃", atoms: { Fe: 2, O: 3 }, c: 1 } ],
+      solution: [4, 3, 2],
+      desc: "أكسدة الحديد؛ نحتاج 4 ذرات حديد و3 جزيئات أوكسجين لموازنة جزيئي أكسيد الحديد الثلاثي: <b>4Fe + 3O₂ ➔ 2Fe₂O₃</b>."
+    },
+    {
+      id: 7, title: "8. تفكك كلورات البوتاسيوم (KClO₃)", level: "hard",
+      reactants: [ { f: "KClO₃", atoms: { K: 1, Cl: 1, O: 3 }, c: 1 } ],
+      products: [ { f: "KCl", atoms: { K: 1, Cl: 1 }, c: 1 }, { f: "O₂", atoms: { O: 2 }, c: 1 } ],
+      solution: [2, 2, 3],
+      desc: "تفكك بالحرارة لتحرير غاز الأوكسجين وكلوريد البوتاسيوم (تجربة تحضير الأوكسجين مخبرياً): <b>2KClO₃ ➔ 2KCl + 3O₂</b>."
+    },
+    {
+      id: 8, title: "9. تفاعل الخارصين مع الحامض (Zn + HCl)", level: "med",
+      reactants: [ { f: "Zn", atoms: { Zn: 1 }, c: 1 }, { f: "HCl", atoms: { H: 1, Cl: 1 }, c: 1 } ],
+      products: [ { f: "ZnCl₂", atoms: { Zn: 1, Cl: 2 }, c: 1 }, { f: "H₂", atoms: { H: 2 }, c: 1 } ],
+      solution: [1, 2, 1, 1],
+      desc: "تفاعل استبدال يحل فيه الخارصين محل هيدروجين الحمض ويحرر فقاعات الهيدروجين: <b>Zn + 2HCl ➔ ZnCl₂ + H₂</b>."
+    },
+    {
+      id: 9, title: "10. احتراق الفوسفور الأبيض (P)", level: "hard",
+      reactants: [ { f: "P", atoms: { P: 1 }, c: 1 }, { f: "O₂", atoms: { O: 2 }, c: 1 } ],
+      products: [ { f: "P₂O₅", atoms: { P: 2, O: 5 }, c: 1 } ],
+      solution: [4, 5, 2],
+      desc: "احتراق الفوسفور لتكوين خماسي أكسيد ثنائي الفوسفور؛ معادلة شهيرة تتطلب موازنة الأوكسجين الفردي: <b>4P + 5O₂ ➔ 2P₂O₅</b>."
+    },
+    {
+      id: 10, title: "11. احتراق الفحم والكاربون (C)", level: "easy",
+      reactants: [ { f: "C", atoms: { C: 1 }, c: 1 }, { f: "O₂", atoms: { O: 2 }, c: 1 } ],
+      products: [ { f: "CO₂", atoms: { C: 1, O: 2 }, c: 1 } ],
+      solution: [1, 1, 1],
+      desc: "معادلة متوازنة طبيعياً تمثل تفاعل احتراق مباشر بنسبة 1:1 دون الحاجة لمعاملات مضاعفة: <b>C + O₂ ➔ CO₂</b>."
+    },
+    {
+      id: 11, title: "12. تفاعل النحاس مع الكبريت (Cu + S)", level: "easy",
+      reactants: [ { f: "Cu", atoms: { Cu: 1 }, c: 1 }, { f: "S", atoms: { S: 1 }, c: 1 } ],
+      products: [ { f: "CuS", atoms: { Cu: 1, S: 1 }, c: 1 } ],
+      solution: [1, 1, 1],
+      desc: "تفاعل تكوين كبريتيد النحاس الأسود بالتسخين المباشر: <b>Cu + S ➔ CuS</b>."
+    }
+  ];
+
+  let currentEq = EQUATIONS[0];
+  let coefficients = [1, 1, 1];
+  let beamAngle = 0; // زاوية ميلان الميزان الفيزيائي
+  let targetAngle = 0;
+  let isBalanced = false;
+
+  // محرك الصوت عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playBeep(f, d = 0.06) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d);
+  }
+
+  function playSuccessFanfare() {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, idx) => {
+      const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+      o.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+      g.gain.setValueAtTime(0.25, audioCtx.currentTime + idx * 0.1);
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + idx * 0.1 + 0.3);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(audioCtx.currentTime + idx * 0.1);
+      o.stop(audioCtx.currentTime + idx * 0.1 + 0.3);
+    });
+  }
+
+  // ملء القائمة المنسدلة
+  function populateSelect(eqs) {
+    const sel = document.getElementById("eqSelect");
+    sel.innerHTML = "";
+    eqs.forEach(eq => {
+      const opt = document.createElement("option");
+      opt.value = eq.id;
+      opt.innerText = eq.title;
+      if (eq.id === currentEq.id) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function filterByLevel(lvl) {
+    document.querySelectorAll(".chip-btn").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+    const filtered = lvl === "all" ? EQUATIONS : EQUATIONS.filter(e => e.level === lvl);
+    populateSelect(filtered);
+    if (filtered.length) loadEquation(filtered[0].id);
+  }
+
+  function loadEquation(id) {
+    currentEq = EQUATIONS.find(e => e.id === parseInt(id));
+    const totalTerms = currentEq.reactants.length + currentEq.products.length;
+    coefficients = new Array(totalTerms).fill(1);
+    isBalanced = false;
+    playBeep(440);
+    renderEquationCard();
+    checkBalance();
+  }
+
+  // بناء أزرار المعادلة والمعاملات
+  function renderEquationCard() {
+    const card = document.getElementById("eqCard");
+    card.innerHTML = "";
+
+    let termIndex = 0;
+
+    // 1. المتفاعلات
+    currentEq.reactants.forEach((r, idx) => {
+      if (idx > 0) card.appendChild(createEqSymbol("+"));
+      card.appendChild(createTermElement(r.f, termIndex));
+      termIndex++;
+    });
+
+    // 2. سهم التفاعل ➔
+    card.appendChild(createEqSymbol("➔", true));
+
+    // 3. النواتج
+    currentEq.products.forEach((p, idx) => {
+      if (idx > 0) card.appendChild(createEqSymbol("+"));
+      card.appendChild(createTermElement(p.f, termIndex));
+      termIndex++;
+    });
+  }
+
+  function createEqSymbol(sym, isArrow = false) {
+    const span = document.createElement("span");
+    span.className = isArrow ? "eq-arrow" : "eq-symbol";
+    span.innerText = sym;
+    return span;
+  }
+
+  function createTermElement(formula, idx) {
+    const box = document.createElement("div");
+    box.className = "term-box";
+
+    // عداد المعامل الكيميائي
+    const stepper = document.createElement("div");
+    stepper.className = "stepper";
+
+    const btnUp = document.createElement("button");
+    btnUp.className = "step-btn"; btnUp.innerText = "▲";
+    btnUp.onclick = () => changeCoefficient(idx, 1);
+
+    const btnDown = document.createElement("button");
+    btnDown.className = "step-btn"; btnDown.innerText = "▼";
+    btnDown.onclick = () => changeCoefficient(idx, -1);
+
+    stepper.appendChild(btnUp); stepper.appendChild(btnDown);
+
+    const numSpan = document.createElement("span");
+    numSpan.className = "coeff-num";
+    numSpan.id = `coeff-${idx}`;
+    numSpan.innerText = coefficients[idx];
+
+    // نص الصيغة الكيميائية مع أرقام فرعية منسقة
+    const txtSpan = document.createElement("span");
+    txtSpan.className = "formula-txt";
+    txtSpan.innerHTML = formatFormulaHtml(formula);
+
+    box.appendChild(stepper);
+    box.appendChild(numSpan);
+    box.appendChild(txtSpan);
+    return box;
+  }
+
+  function formatFormulaHtml(f) {
+    return f.replace(/(\d+)/g, '<span class="subscript">$1</span>');
+  }
+
+  function changeCoefficient(idx, delta) {
+    const old = coefficients[idx];
+    coefficients[idx] = Math.max(1, Math.min(8, coefficients[idx] + delta));
+    if (coefficients[idx] !== old) {
+      document.getElementById(`coeff-${idx}`).innerText = coefficients[idx];
+      playBeep(coefficients[idx] > old ? 580 : 360);
+      checkBalance();
+    }
+  }
+
+  // حساب أعداد الذرات في الطرفين ومقارنتها
+  function checkBalance() {
+    const rAtoms = {};
+    const pAtoms = {};
+
+    let termIdx = 0;
+    // حساب المتفاعلات
+    currentEq.reactants.forEach(r => {
+      const coeff = coefficients[termIdx];
+      for (const [atom, count] of Object.entries(r.atoms)) {
+        rAtoms[atom] = (rAtoms[atom] || 0) + count * coeff;
+      }
+      termIdx++;
+    });
+
+    // حساب النواتج
+    currentEq.products.forEach(p => {
+      const coeff = coefficients[termIdx];
+      for (const [atom, count] of Object.entries(p.atoms)) {
+        pAtoms[atom] = (pAtoms[atom] || 0) + count * coeff;
+      }
+      termIdx++;
+    });
+
+    // مقارنة التوازن
+    const allAtoms = Array.from(new Set([...Object.keys(rAtoms), ...Object.keys(pAtoms)]));
+    let balanced = true;
+    let totalR = 0, totalP = 0;
+
+    const auditGrid = document.getElementById("auditGrid");
+    auditGrid.innerHTML = "";
+
+    allAtoms.forEach(atom => {
+      const countR = rAtoms[atom] || 0;
+      const countP = pAtoms[atom] || 0;
+      totalR += countR;
+      totalP += countP;
+
+      const isMatch = countR === countP;
+      if (!isMatch) balanced = false;
+
+      // بطاقة الفحص لكل عنصر
+      const card = document.createElement("div");
+      card.className = "audit-card";
+      card.innerHTML = `
+        <span class="audit-sym" style="color:${ATOM_COLORS[atom] || '#fff'};">${atom}</span>
+        <div class="audit-counts">
+          <span style="color:#f87171;">${countR}</span>
+          <span style="color:#94a3b8;">:</span>
+          <span style="color:#38bdf8;">${countP}</span>
+          <span class="status-badge">${isMatch ? '🟢 ✓' : '🔴 ✗'}</span>
+        </div>
+      `;
+      auditGrid.appendChild(card);
+    });
+
+    // احتساب زاوية ميلان الميزان الفيزيائي (ميلان نحو الأثقل)
+    const diff = totalP - totalR;
+    targetAngle = Math.max(-0.25, Math.min(0.25, diff * 0.05));
+
+    const banner = document.getElementById("successBanner");
+    if (balanced && !isBalanced) {
+      isBalanced = true;
+      banner.style.display = "block";
+      playSuccessFanfare();
+      document.getElementById("infoTitle").innerText = `🎉 اكتملت موازنة: ${currentEq.title}`;
+      document.getElementById("infoText").innerHTML = currentEq.desc;
+    } else if (!balanced) {
+      isBalanced = false;
+      banner.style.display = "none";
+      document.getElementById("infoTitle").innerText = "الميزان غير متطابق:";
+      document.getElementById("infoText").innerHTML = `
+        المتفاعلات تحوي <b>${totalR} ذرة</b>، بينما النواتج تحوي <b>${totalP} ذرة</b>.<br>
+        اضبط المعاملات الكيميائية (الأرقام الصفراء) حتى تتساوى ذرات كل عنصر في الكفتين ويستقر الميزان أفقياً.
+      `;
+    }
+  }
+
+  // --- محرك رسم الميزان الفيزيائي ثلاثي الأبعاد (Canvas Engine) ---
+  const bCanvas = document.getElementById("balanceCanvas");
+  const bCtx = bCanvas.getContext("2d");
+
+  function renderBalance() {
+    bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+
+    // حركة سلسة للرافعة (Damping Spring Physics)
+    beamAngle += (targetAngle - beamAngle) * 0.08;
+
+    const cx = bCanvas.width / 2;
+    const cy = 110;
+    const beamLength = 160;
+
+    // 1. قاعدة الميزان والعمود الثابت
+    bCtx.fillStyle = "#1e293b"; bCtx.strokeStyle = "#475569"; bCtx.lineWidth = 2;
+    bCtx.beginPath(); bCtx.roundRect(cx - 35, 175, 70, 25, 6); bCtx.fill(); bCtx.stroke();
+    // العمود المركزي
+    bCtx.fillRect(cx - 7, cy - 10, 14, 85);
+    // المفصل الدوار
+    bCtx.fillStyle = "#facc15"; bCtx.beginPath(); bCtx.arc(cx, cy, 9, 0, Math.PI * 2); bCtx.fill();
+
+    // مؤشر ومقياس التوازن الأوسط
+    bCtx.strokeStyle = isBalanced ? "#10b981" : "#ef4444"; bCtx.lineWidth = 2;
+    bCtx.beginPath();
+    bCtx.arc(cx, cy - 25, 25, Math.PI * 0.8, Math.PI * 0.2);
+    bCtx.stroke();
+
+    // 2. عارضة الميزان المائلة (Beam)
+    bCtx.save();
+    bCtx.translate(cx, cy);
+    bCtx.rotate(beamAngle);
+
+    // ذراع الرافعة
+    bCtx.strokeStyle = isBalanced ? "#10b981" : "#38bdf8"; bCtx.lineWidth = 6; bCtx.lineCap = "round";
+    bCtx.beginPath(); bCtx.moveTo(-beamLength, 0); bCtx.lineTo(beamLength, 0); bCtx.stroke();
+
+    // إبرة المؤشر
+    bCtx.strokeStyle = isBalanced ? "#10b981" : "#f87171"; bCtx.lineWidth = 2.5;
+    bCtx.beginPath(); bCtx.moveTo(0, 0); bCtx.lineTo(0, -35); bCtx.stroke();
+
+    bCtx.restore();
+
+    // 3. الكفتان اليسرى واليمنى المعلقات بالجاذبية
+    const leftX = cx - Math.cos(beamAngle) * beamLength;
+    const leftY = cy - Math.sin(beamAngle) * beamLength;
+
+    const rightX = cx + Math.cos(beamAngle) * beamLength;
+    const rightY = cy + Math.sin(beamAngle) * beamLength;
+
+    drawPan(leftX, leftY + 50, "المتفاعلات", "#f87171", currentEq.reactants, 0);
+    drawPan(rightX, rightY + 50, "النواتج", "#38bdf8", currentEq.products, currentEq.reactants.length);
+
+    requestAnimationFrame(renderBalance);
+  }
+
+  // رسم الكفة والكرات الذرية المعلقة
+  function drawPan(x, y, label, color, terms, startIdx) {
+    bCtx.save();
+    // حبال التعليق (تتدلى رأسياً بفعل الجاذبية)
+    bCtx.strokeStyle = "rgba(148, 163, 184, 0.5)"; bCtx.lineWidth = 1.5;
+    bCtx.beginPath();
+    bCtx.moveTo(x - 30, y); bCtx.lineTo(x, y - 50);
+    bCtx.moveTo(x + 30, y); bCtx.lineTo(x, y - 50);
+    bCtx.stroke();
+
+    // طبق الكفة
+    bCtx.fillStyle = "rgba(30, 41, 59, 0.9)";
+    bCtx.strokeStyle = color; bCtx.lineWidth = 2;
+    bCtx.beginPath();
+    bCtx.ellipse(x, y, 42, 10, 0, 0, Math.PI * 2);
+    bCtx.fill(); bCtx.stroke();
+
+    // كتابة اسم الكفة
+    bCtx.fillStyle = color; bCtx.font = "bold 10.5px 'Cairo', sans-serif"; bCtx.textAlign = "center";
+    bCtx.fillText(label, x, y + 24);
+
+    // رسم كرات الجزيئات المتراكمة على الكفة
+    let atomDrawIndex = 0;
+    terms.forEach((term, tIdx) => {
+      const coeff = coefficients[startIdx + tIdx];
+      for (let c = 0; c < coeff; c++) {
+        for (const [atom, count] of Object.entries(term.atoms)) {
+          for (let k = 0; k < count; k++) {
+            const ballX = x - 26 + (atomDrawIndex % 7) * 9;
+            const ballY = y - 6 - Math.floor(atomDrawIndex / 7) * 9;
+
+            bCtx.fillStyle = ATOM_COLORS[atom] || "#cbd5e1";
+            bCtx.beginPath(); bCtx.arc(ballX, ballY, 4, 0, Math.PI * 2); bCtx.fill();
+            atomDrawIndex++;
+          }
+        }
+      }
+    });
+
+    bCtx.restore();
+  }
+
+  // التهيئة والبدء
+  populateSelect(EQUATIONS);
+  loadEquation(0);
+  requestAnimationFrame(renderBalance);
+</script>
+</body>
+</html>
