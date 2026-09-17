@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>تركيب الصيغ الكيميائية | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 12px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11.5px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* شريط اختيار المركبات (10 أمثلة) */
+    .presets-label { font-size: 11px; font-weight: 700; color: #94a3b8; margin-top: 2px; }
+    .presets-bar {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
+    }
+    .presets-bar::-webkit-scrollbar { display: none; }
+    .preset-btn {
+      flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 6px 12px; border-radius: 8px; font-size: 11.5px; font-weight: bold;
+      cursor: pointer; transition: all 0.2s; font-family: 'Cairo', sans-serif;
+    }
+    .preset-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.3); }
+
+    /* لوحة ميزان الشحنات والتعادل الكهربائي */
+    .balance-card {
+      display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 6px; background: #1e293b;
+      padding: 8px 10px; border-radius: 10px; border: 1px solid #334155; text-align: center;
+    }
+    .bal-item { display: flex; flex-direction: column; gap: 1px; }
+    .bal-lbl { font-size: 10px; color: #94a3b8; font-weight: 600; }
+    .bal-val { font-size: 13px; font-weight: 800; font-family: monospace; }
+    .val-pos { color: #f87171; }
+    .val-neg { color: #38bdf8; }
+    .val-total { color: #10b981; }
+
+    /* منطقة الرسم (الكانفاس) */
+    .canvas-wrapper {
+      position: relative; width: 100%; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: center;
+    }
+    canvas { display: block; width: 100%; max-width: 460px; height: auto; }
+
+    /* لوحة التحكم */
+    .controls-panel {
+      width: 100%; background: #1e293b; padding: 10px 12px; border-radius: 12px;
+      display: flex; gap: 8px; border: 1px solid #334155;
+    }
+    .btn {
+      flex: 1; padding: 9px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; border: none;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-apply { background: #10b981; color: white; border: 1px solid #34d399; }
+    .btn-reset { background: #334155; color: #f1f5f9; border: 1px solid #475569; flex: 0.45; }
+
+    /* صندوق الشرح المنهجي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 80px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>تركيب الصيغ الكيميائية (طريقة المقص)</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <div class="presets-label">اختر مركباً لمشاهدة خطوات كتابة صيغته:</div>
+  <div class="presets-bar" id="presetsBar"></div>
+
+  <!-- ميزان التعادل الكهربائي المنهجي -->
+  <div class="balance-card">
+    <div class="bal-item">
+      <span class="bal-lbl">مجموع الموجب</span>
+      <span class="bal-val val-pos" id="posSum">+1</span>
+    </div>
+    <div class="bal-item">
+      <span class="bal-lbl">المجموع الجبري للجزئ</span>
+      <span class="bal-val val-total" id="totalSum">(+1) + (-1) = 0 ✓</span>
+    </div>
+    <div class="bal-item">
+      <span class="bal-lbl">مجموع السالب</span>
+      <span class="bal-val val-neg" id="negSum">-1</span>
+    </div>
+  </div>
+
+  <!-- كانفاس حركة المقص -->
+  <div class="canvas-wrapper">
+    <canvas id="simCanvas" width="460" height="330"></canvas>
+  </div>
+
+  <div class="controls-panel">
+    <button class="btn btn-apply" id="actionBtn" onclick="animateCrissCross()">✂️ تطبيق حركة المقص وتبادل الأرقام</button>
+    <button class="btn btn-reset" onclick="resetAnimation()">🔄 إعادة</button>
+  </div>
+
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">قواعد كتابة الصيغة الكيميائية:</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // 10 مركبات منهجية (5 من الكتاب + 5 إضافية سهلة ومباشرة)
+  const compounds = [
+    // 1-5: أمثلة الكتاب الأساسية (ص 44)
+    {
+      name: "بروميد البوتاسيوم",
+      pos: { sym: "K", name: "بوتاسيوم", charge: +1, isGroup: false },
+      neg: { sym: "Br", name: "بروميد", charge: -1, isGroup: false },
+      finalFormula: "KBr",
+      notes: "بما أن الشحنات متساوية (+1 و -1)، يتبادل الطرفان الرقم 1 دون كتابته؛ فيكون الناتج KBr مباشرة."
+    },
+    {
+      name: "فلوريد الألمنيوم",
+      pos: { sym: "Al", name: "ألمنيوم", charge: +3, isGroup: false },
+      neg: { sym: "F", name: "فلوريد", charge: -1, isGroup: false },
+      finalFormula: "AlF₃",
+      notes: "ينتقل الرقم 3 من الألمنيوم إلى أسفل الفلور، وينتقل الرقم 1 إلى الألمنيوم بدون إشارة؛ فتتكون الصيغة AlF₃."
+    },
+    {
+      name: "هيدروكسيد المغنيسيوم",
+      pos: { sym: "Mg", name: "مغنيسيوم", charge: +2, isGroup: false },
+      neg: { sym: "OH", name: "هيدروكسيد", charge: -1, isGroup: true },
+      finalFormula: "Mg(OH)₂",
+      notes: "ينتقل الرقم 2 بعد مجموعة الهيدروكسيد الذرية؛ ولأنها مجموعة مكونة من عنصرين وليست ذرة مفردة، تُوضع بين قوسين (OH)₂."
+    },
+    {
+      name: "كبريتات الأمونيوم",
+      pos: { sym: "NH₄", name: "أمونيوم", charge: +1, isGroup: true },
+      neg: { sym: "SO₄", name: "كبريتات", charge: -2, isGroup: true },
+      finalFormula: "(NH₄)₂SO₄",
+      notes: "ينتقل الرقم 2 إلى مجموعة الأمونيوم فتُوضع بين قوسين (NH₄)₂، بينما ينتقل الرقم 1 إلى الكبريتات فلا تحتاج لقوسين."
+    },
+    {
+      name: "أوكسيد الألمنيوم",
+      pos: { sym: "Al", name: "ألمنيوم", charge: +3, isGroup: false },
+      neg: { sym: "O", name: "أوكسيد", charge: -2, isGroup: false },
+      finalFormula: "Al₂O₃",
+      notes: "يتبادل الألمنيوم والأوكسجين أرقام التأكسد بدون إشارة؛ فيأخذ الألمنيوم 2 ويأخذ الأوكسجين 3 لتصبح Al₂O₃."
+    },
+
+    // 6-10: أمثلة إضافية سهلة (من أسئلة ومفردات الكتاب)
+    {
+      name: "كلوريد الصوديوم (ملح الطعام)",
+      pos: { sym: "Na", name: "صوديوم", charge: +1, isGroup: false },
+      neg: { sym: "Cl", name: "كلوريد", charge: -1, isGroup: false },
+      finalFormula: "NaCl",
+      notes: "شحنة الصوديوم (+1) وشحنة الكلور (-1)؛ المجموع الجبري صفر والرقم 1 لا يُكتب في الصيغة."
+    },
+    {
+      name: "كلوريد المغنيسيوم",
+      pos: { sym: "Mg", name: "مغنيسيوم", charge: +2, isGroup: false },
+      neg: { sym: "Cl", name: "كلوريد", charge: -1, isGroup: false },
+      finalFormula: "MgCl₂",
+      notes: "يأخذ الكلور الرقم 2 الناتج عن عدد تأكسد المغنيسيوم؛ لتتعادل الشحنة (+2) مع ذرتي كلور (-2)."
+    },
+    {
+      name: "هيدروكسيد الكالسيوم",
+      pos: { sym: "Ca", name: "كالسيوم", charge: +2, isGroup: false },
+      neg: { sym: "OH", name: "هيدروكسيد", charge: -1, isGroup: true },
+      finalFormula: "Ca(OH)₂",
+      notes: "يحتاج الكالسيوم (+2) إلى مجموعتي هيدروكسيد (-1 × 2) للتعادل، فتُكتب المجموعة داخل قوسين Ca(OH)₂."
+    },
+    {
+      name: "أوكسيد الكالسيوم",
+      pos: { sym: "Ca", name: "كالسيوم", charge: +2, isGroup: false },
+      neg: { sym: "O", name: "أوكسيد", charge: -2, isGroup: false },
+      finalFormula: "CaO",
+      notes: "قاعدة الاختصار: الشحنتان (+2 و -2) تختصران بنسبة 1 : 1، فتكتب الصيغة CaO بدلاً من Ca₂O₂."
+    },
+    {
+      name: "أوكسيد الصوديوم",
+      pos: { sym: "Na", name: "صوديوم", charge: +1, isGroup: false },
+      neg: { sym: "O", name: "أوكسيد", charge: -2, isGroup: false },
+      finalFormula: "Na₂O",
+      notes: "ينتقل الرقم 2 من الأوكسجين إلى الصوديوم، وينتقل الرقم 1 إلى الأوكسجين؛ فيكون الناتج Na₂O."
+    }
+  ];
+
+  let currentCmp = compounds[0];
+  let animProgress = 0; // 0 = البداية، 1 = اكتملت حركة المقص
+  let isAnimating = false;
+
+  // توليد أصوات عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playBeep(freq, dur = 0.1) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  }
+
+  // بناء شريط أزرار المركبات
+  const pBar = document.getElementById("presetsBar");
+  compounds.forEach((c, idx) => {
+    const btn = document.createElement("button");
+    btn.className = `preset-btn ${idx === 0 ? 'active' : ''}`;
+    btn.innerText = c.name;
+    btn.onclick = () => selectCompound(c, btn);
+    pBar.appendChild(btn);
+  });
+
+  function selectCompound(c, btn) {
+    currentCmp = c;
+    document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    resetAnimation();
+  }
+
+  function animateCrissCross() {
+    if (isAnimating || animProgress >= 1) return;
+    isAnimating = true;
+    playBeep(440, 0.15);
+  }
+
+  function resetAnimation() {
+    isAnimating = false;
+    animProgress = 0;
+    playBeep(330, 0.08);
+    updateBalanceCard();
+  }
+
+  function updateBalanceCard() {
+    const posVal = Math.abs(currentCmp.pos.charge);
+    const negVal = Math.abs(currentCmp.neg.charge);
+
+    let posMultiplier = negVal;
+    let negMultiplier = posVal;
+
+    // حالة الاختصار (+2 مع -2 أو +1 مع -1)
+    if (posVal === negVal) {
+      posMultiplier = 1;
+      negMultiplier = 1;
+    }
+
+    const totalPos = currentCmp.pos.charge * posMultiplier;
+    const totalNeg = currentCmp.neg.charge * negMultiplier;
+
+    document.getElementById("posSum").innerText = `${totalPos > 0 ? '+' : ''}${totalPos}`;
+    document.getElementById("negSum").innerText = `${totalNeg}`;
+    document.getElementById("totalSum").innerText = `(${totalPos}) + (${totalNeg}) = 0 ✓`;
+
+    document.getElementById("infoTitle").innerText = `خطوات كتابة صيغة: ${currentCmp.name}`;
+    document.getElementById("infoText").innerHTML = `
+      <b>1. الرموز وأعداد التأكسد:</b> ${currentCmp.pos.sym} (${currentCmp.pos.charge > 0 ? '+' : ''}${currentCmp.pos.charge}) مع ${currentCmp.neg.sym} (${currentCmp.neg.charge}).<br>
+      <b>2. قاعدة المقص:</b> ${currentCmp.notes}
+    `;
+  }
+
+  // حلقة التحديث والرسم
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (isAnimating && animProgress < 1) {
+      animProgress += 0.02;
+      if (animProgress >= 1) {
+        animProgress = 1;
+        isAnimating = false;
+        playBeep(660, 0.25);
+      }
+    }
+
+    renderSteps();
+    requestAnimationFrame(loop);
+  }
+
+  function renderSteps() {
+    const c = currentCmp;
+
+    // مواضع العناصر في الخطوة العلوية
+    const posStartX = 150, posStartY = 110;
+    const negStartX = 310, negStartY = 110;
+
+    // 1. عناوين الخطوات
+    ctx.fillStyle = "#94a3b8"; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("الخطوة 1: كتابة الرموز وأعداد التأكسد", 230, 30);
+    ctx.fillText("الخطوة 2: تبادل أرقام التأكسد بالمقص (بدون إشارة)", 230, 165);
+    ctx.fillText("الخطوة 3: الصيغة الكيميائية النهائية", 230, 255);
+
+    // 2. رسم الرموز العلوية
+    drawAtomBadge(posStartX, posStartY, c.pos.sym, c.pos.name, "#f87171");
+    drawAtomBadge(negStartX, negStartY, c.neg.sym, c.neg.name, "#38bdf8");
+
+    // 3. أرقام التأكسد مع الإشارة بالأعلى
+    const posNum = Math.abs(c.pos.charge);
+    const negNum = Math.abs(c.neg.charge);
+
+    ctx.font = "bold 16px monospace";
+    ctx.fillStyle = "#f87171";
+    ctx.fillText(`${c.pos.charge > 0 ? '+' : ''}${c.pos.charge}`, posStartX + 26, posStartY - 18);
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText(`${c.neg.charge}`, negStartX + 28, negStartY - 18);
+
+    // 4. خطوط المقص المتقاطعة
+    ctx.save();
+    ctx.strokeStyle = "rgba(250, 204, 21, 0.35)";
+    ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+
+    // خط من شحنة الموجب إلى أسفل السالب
+    ctx.beginPath();
+    ctx.moveTo(posStartX + 26, posStartY - 8);
+    ctx.lineTo(negStartX + 20, posStartY + 65);
+    ctx.stroke();
+
+    // خط من شحنة السالب إلى أسفل الموجب
+    ctx.beginPath();
+    ctx.moveTo(negStartX + 26, negStartY - 8);
+    ctx.lineTo(posStartX + 20, negStartY + 65);
+    ctx.stroke();
+    ctx.restore();
+
+    // 5. حركة انزلاق الأرقام عبر مسار المقص (تسقط الإشارة أثناء الانزلاق)
+    // الرقم الموجب ينزلق نحو أسفل السالب
+    const num1CurrentX = (posStartX + 26) + ((negStartX + 20) - (posStartX + 26)) * animProgress;
+    const num1CurrentY = (posStartY - 8) + 73 * animProgress;
+
+    // الرقم السالب ينزلق نحو أسفل الموجب
+    const num2CurrentX = (negStartX + 26) + ((posStartX + 20) - (negStartX + 26)) * animProgress;
+    const num2CurrentY = (negStartY - 8) + 73 * animProgress;
+
+    // رسم الكرات الرقمية المتحركة
+    drawSlidingNumber(num1CurrentX, num1CurrentY, posNum, "#f87171");
+    drawSlidingNumber(num2CurrentX, num2CurrentY, negNum, "#38bdf8");
+
+    // 6. عرض الصيغة النهائية في الأسفل فور اكتمال الحركة
+    if (animProgress >= 0.95) {
+      ctx.save();
+      ctx.fillStyle = "#0f172a";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(140, 270, 180, 48, 10);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 24px 'Cairo', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(c.finalFormula, 230, 303);
+      ctx.restore();
+    }
+  }
+
+  function drawAtomBadge(x, y, sym, name, color) {
+    ctx.save();
+    ctx.fillStyle = "#1e293b"; ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(x - 34, y - 24, 68, 48, 8); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 18px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(sym, x, y + 2);
+
+    ctx.fillStyle = "#94a3b8"; ctx.font = "bold 9.5px 'Cairo', sans-serif";
+    ctx.fillText(name, x, y + 17);
+    ctx.restore();
+  }
+
+  function drawSlidingNumber(x, y, val, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#0f172a";
+    ctx.font = "bold 11px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(val + "", x, y);
+    ctx.restore();
+  }
+
+  updateBalanceCard();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
