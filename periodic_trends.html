@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>تدرج الخواص في الجدول الدوري | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 10px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 530px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الترويسة والرجوع */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* التبويبات الأربعة للمحاكاة */
+    .nav-tabs {
+      display: grid; grid-template-columns: 1fr 1fr 1.1fr 1fr; gap: 4px; background: #1e293b;
+      padding: 4px; border-radius: 10px; border: 1px solid #334155;
+    }
+    .nav-tab-btn {
+      background: transparent; border: none; color: #94a3b8; padding: 6px 2px;
+      border-radius: 7px; font-size: 11px; font-weight: bold; cursor: pointer;
+      font-family: 'Cairo', sans-serif; transition: all 0.2s; text-align: center;
+    }
+    .nav-tab-btn.active { background: #0284c7; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* شريط التحكم بالفلاتر والحرارة اللونية */
+    .controls-strip {
+      display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+    }
+    .controls-strip::-webkit-scrollbar { display: none; }
+    .strip-btn {
+      flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: bold; cursor: pointer;
+    }
+    .strip-btn.active { background: #38bdf8; color: #0b0f19; border-color: #38bdf8; }
+
+    /* حاوية شبكة الجدول الدوري (118 عنصراً كاملاً) */
+    .table-viewport {
+      background: #111827; border: 1px solid #1f2937; border-radius: 12px;
+      padding: 8px; overflow-x: auto; position: relative;
+    }
+    .grid-118 {
+      display: grid; grid-template-columns: repeat(18, 26px); gap: 2.5px; min-width: 530px;
+    }
+    .cell {
+      height: 34px; border-radius: 4px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; cursor: pointer; font-family: monospace;
+      font-size: 9.5px; font-weight: bold; border: 1px solid rgba(255,255,255,0.08);
+      transition: transform 0.1s, background-color 0.3s; position: relative;
+    }
+    .cell:active { transform: scale(1.15); z-index: 10; }
+    .cell.selected { border-color: #ffffff !important; box-shadow: 0 0 10px #ffffff; z-index: 5; }
+    .cell.in-period { outline: 1.5px dashed rgba(56, 189, 248, 0.6); }
+    .cell.in-group { outline: 1.5px dashed rgba(245, 158, 11, 0.6); }
+    .cell .z-num { font-size: 7px; opacity: 0.75; line-height: 1; }
+    .cell .sym { font-size: 10.5px; font-weight: 800; line-height: 1.1; }
+
+    /* بطاقة تفاصيل العنصر اللحظية */
+    .element-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+      padding: 10px 14px; display: grid; grid-template-columns: 80px 1fr; gap: 12px; align-items: center;
+    }
+    .card-square {
+      background: #0f172a; border: 2px solid #38bdf8; border-radius: 8px;
+      padding: 6px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; height: 80px;
+    }
+    .card-z { font-size: 10.5px; font-weight: bold; color: #f87171; text-align: right; }
+    .card-sym { font-size: 20px; font-weight: 800; color: #f8fafc; line-height: 1; }
+    .card-radius { font-size: 9.5px; color: #facc15; font-family: monospace; }
+    .card-details { display: flex; flex-direction: column; gap: 2px; }
+    .card-title-row { display: flex; justify-content: space-between; align-items: center; }
+    .card-name-ar { font-size: 15px; font-weight: 800; color: #f8fafc; }
+    .badge-trend { padding: 2px 7px; border-radius: 5px; font-size: 10px; font-weight: 800; background: rgba(56,189,248,0.2); color: #38bdf8; }
+    .card-text { font-size: 11px; color: #94a3b8; line-height: 1.4; }
+
+    /* لوحات المحاكاة المتخصصة */
+    .panel-view {
+      display: none; background: #111827; border: 1px solid #1f2937; border-radius: 12px;
+      padding: 12px; flex-direction: column; gap: 10px;
+    }
+    .canvas-wrap {
+      width: 100%; height: 200px; background: #0f172a; border-radius: 8px;
+      display: flex; justify-content: center; position: relative; overflow: hidden;
+    }
+    canvas { display: block; width: 100%; max-width: 490px; height: 100%; }
+
+    /* أدوات تحكم خاصة بحوض التفاعل والدورة الرابعة */
+    .action-row { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
+    .act-btn {
+      flex: 1; background: #1e293b; border: 1px solid #334155; color: #f8fafc;
+      padding: 8px 4px; border-radius: 8px; font-size: 11.5px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; text-align: center;
+    }
+    .act-btn:active { transform: scale(0.96); background: #334155; }
+    .act-btn.active { background: #0284c7; border-color: #38bdf8; }
+
+    /* صندوق التفسير العلمي المنهجي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 75px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>تدرج الخواص في الجدول الدوري</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- التبويبات الأربعة -->
+  <div class="nav-tabs">
+    <button class="nav-tab-btn active" id="btnTabMap" onclick="switchTab('map')">🗺️ خريطة الـ 118</button>
+    <button class="nav-tab-btn" id="btnTabMicro" onclick="switchTab('micro')">🔬 مجهر الحجم</button>
+    <button class="nav-tab-btn" id="btnTabWater" onclick="switchTab('water')">💥 حوض التفاعل</button>
+    <button class="nav-tab-btn" id="btnTabP4" onclick="switchTab('p4')">🚂 رحلة الدورة 4</button>
+  </div>
+
+  <!-- 1. واجهة الخريطة الحرارية الكاملة -->
+  <div id="sectionMap" style="display: flex; flex-direction: column; gap: 8px;">
+    <div class="controls-strip">
+      <button class="strip-btn active" id="btnTrendRadius" onclick="setHeatmapTrend('radius')">🔴 الحجم الذري (pm)</button>
+      <button class="strip-btn" id="btnTrendMetal" onclick="setHeatmapTrend('metal')">⚡ الفلزية واللافلزية</button>
+      <button class="strip-btn" id="btnTrendValence" onclick="setHeatmapTrend('valence')">🔢 إلكترونات التكافؤ (1-8)</button>
+    </div>
+
+    <div class="table-viewport">
+      <div class="grid-118" id="periodicGrid"></div>
+    </div>
+  </div>
+
+  <!-- 2. واجهة مجهر الحجم الذري النسبي -->
+  <div class="panel-view" id="sectionMicro">
+    <div class="action-row">
+      <span style="font-size:11.5px; font-weight:700;">المقارنة حسب:</span>
+      <button class="act-btn active" id="btnScopePeriod" onclick="setMicroScope('period')">أفقياً عبر الدورة ⬅</button>
+      <button class="act-btn" id="btnScopeGroup" onclick="setMicroScope('group')">رأسياً عبر الزمرة ⬇</button>
+    </div>
+    <div class="action-row">
+      <span style="font-size:11px;" id="lblSliderNum">اختر الدورة (1-7):</span>
+      <input type="range" id="microSlider" min="1" max="7" value="3" style="flex:1;" oninput="updateMicroScope()">
+      <b id="txtSliderVal" style="color:#38bdf8; font-family:monospace;">الدورة 3</b>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="microCanvas" width="490" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- 3. واجهة حوض التفاعل المائي -->
+  <div class="panel-view" id="sectionWater">
+    <div style="font-size:11.5px; font-weight:700; color:#cbd5e1;">اختر قطعة الفلز لإسقاطها في حوض الماء:</div>
+    <div class="action-row">
+      <button class="act-btn active" onclick="dropAlkali(0)">الليثيوم (Li)</button>
+      <button class="act-btn" onclick="dropAlkali(1)">الصوديوم (Na)</button>
+      <button class="act-btn" onclick="dropAlkali(2)">البوتاسيوم (K)</button>
+      <button class="act-btn" onclick="dropAlkali(3)">الروبيديوم (Rb)</button>
+      <button class="act-btn" onclick="dropAlkali(4)">السيزيوم (Cs)</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="waterCanvas" width="490" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- 4. واجهة رحلة الدورة الرابعة (ص 63) -->
+  <div class="panel-view" id="sectionP4">
+    <div class="action-row">
+      <button class="act-btn" onclick="stepP4(-1)">▶ العنصر السابق</button>
+      <span id="txtP4Progress" style="font-size:12px; font-weight:800; color:#facc15;">العنصر 1 / 18</span>
+      <button class="act-btn" onclick="stepP4(1)">العنصر التالي ◀</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="p4Canvas" width="490" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- بطاقة بيانات العنصر المختار -->
+  <div class="element-card">
+    <div class="card-square" id="cardSquare">
+      <span class="card-z" id="cardZ">11</span>
+      <span class="card-sym" id="cardSym">Na</span>
+      <span class="card-radius" id="cardRadius">190 pm</span>
+    </div>
+    <div class="card-details">
+      <div class="card-title-row">
+        <span class="card-name-ar" id="cardNameAr">الصوديوم (Na)</span>
+        <span class="badge-trend" id="badgeTrend">فلز قلوي</span>
+      </div>
+      <div class="card-text" id="cardDesc">
+        الدورة 3 • الزمرة الأولى • نصف القطر 190 بيكومتر • إلكترون تكافؤ واحد.
+      </div>
+    </div>
+  </div>
+
+  <!-- صندوق التفسير العلمي المنهجي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">قواعد تدرج الخواص في الجدول الدوري:</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  // قاعدة بيانات متكاملة لكافة عناصر الجدول الدوري الـ 118 عنصر
+  // التركيب: [العدد الذري, الرمز, الاسم العربي, الدورة, الزمرة, الصنف, نصف القطر بيكومتر pm, إلكترونات التكافؤ]
+  const ALL_118 = [
+    [1,"H","هيدروجين",1,1,"nm",53,1], [2,"He","هيليوم",1,18,"nb",31,2],
+    [3,"Li","ليثيوم",2,1,"alk",167,1], [4,"Be","بريليوم",2,2,"alk2",112,2], [5,"B","بورون",2,13,"met",87,3], [6,"C","كاربون",2,14,"nm",67,4], [7,"N","نتروجين",2,15,"nm",56,5], [8,"O","أوكسجين",2,16,"nm",48,6], [9,"F","فلور",2,17,"hal",42,7], [10,"Ne","نيون",2,18,"nb",38,8],
+    [11,"Na","صوديوم",3,1,"alk",190,1], [12,"Mg","مغنيسيوم",3,2,"alk2",145,2], [13,"Al","ألمنيوم",3,13,"m",118,3], [14,"Si","سيليكون",3,14,"met",111,4], [15,"P","فسفور",3,15,"nm",98,5], [16,"S","كبريت",3,16,"nm",88,6], [17,"Cl","كلور",3,17,"hal",79,7], [18,"Ar","آرغون",3,18,"nb",71,8],
+    [19,"K","بوتاسيوم",4,1,"alk",243,1], [20,"Ca","كالسيوم",4,2,"alk2",194,2], [21,"Sc","سكانديوم",4,3,"tr",184,3], [22,"Ti","تيتانيوم",4,4,"tr",176,4], [23,"V","فاناديوم",4,5,"tr",171,5], [24,"Cr","كروم",4,6,"tr",166,6], [25,"Mn","منغنيز",4,7,"tr",161,7], [26,"Fe","حديد",4,8,"tr",156,2], [27,"Co","كوبلت",4,9,"tr",152,2], [28,"Ni","نيكل",4,10,"tr",149,2], [29,"Cu","نحاس",4,11,"tr",145,1], [30,"Zn","خارصين",4,12,"tr",142,2], [31,"Ga","غاليوم",4,13,"m",136,3], [32,"Ge","جرمانيوم",4,14,"met",125,4], [33,"As","زرنيخ",4,15,"met",114,5], [34,"Se","سيلينيوم",4,16,"nm",103,6], [35,"Br","بروم",4,17,"hal",94,7], [36,"Kr","كربتون",4,18,"nb",88,8],
+    [37,"Rb","روبيديوم",5,1,"alk",265,1], [38,"Sr","سترونشيوم",5,2,"alk2",219,2], [39,"Y","إتريوم",5,3,"tr",212,3], [40,"Zr","زركونيوم",5,4,"tr",206,4], [41,"Nb","نيوبيوم",5,5,"tr",198,5], [42,"Mo","موليبدنوم",5,6,"tr",190,6], [43,"Tc","تكنيشيوم",5,7,"tr",183,7], [44,"Ru","روثينيوم",5,8,"tr",178,2], [45,"Rh","روديوم",5,9,"tr",173,1], [46,"Pd","بلاديوم",5,10,"tr",169,0], [47,"Ag","فضة",5,11,"tr",165,1], [48,"Cd","كادميوم",5,12,"tr",161,2], [49,"In","إنديوم",5,13,"m",156,3], [50,"Sn","قصدير",5,14,"m",145,4], [51,"Sb","إثمد",5,15,"met",133,5], [52,"Te","تيلوريوم",5,16,"met",123,6], [53,"I","يود",5,17,"hal",115,7], [54,"Xe","زينون",5,18,"nb",108,8],
+    [55,"Cs","سيزيوم",6,1,"alk",298,1], [56,"Ba","باريوم",6,2,"alk2",253,2],
+    [57,"La","لانثانوم",6,3,"lan",195,3], [58,"Ce","سيريوم",6,3,"lan",185,3], [59,"Pr","براسوديميوم",6,3,"lan",185,3], [60,"Nd","نيوديميوم",6,3,"lan",185,3], [61,"Pm","بروميثيوم",6,3,"lan",185,3], [62,"Sm","ساماريوم",6,3,"lan",185,3], [63,"Eu","يوروبيوم",6,3,"lan",185,3], [64,"Gd","غادولينيوم",6,3,"lan",180,3], [65,"Tb","تيربيوم",6,3,"lan",175,3], [66,"Dy","ديسبروسيوم",6,3,"lan",175,3], [67,"Ho","هولميوم",6,3,"lan",175,3], [68,"Er","إربيوم",6,3,"lan",175,3], [69,"Tm","ثوليوم",6,3,"lan",175,3], [70,"Yb","إيتربيوم",6,3,"lan",175,2], [71,"Lu","لوتيتيوم",6,3,"lan",175,3],
+    [72,"Hf","هافنيوم",6,4,"tr",208,4], [73,"Ta","تانتالوم",6,5,"tr",200,5], [74,"W","تنغستن",6,6,"tr",193,6], [75,"Re","رينيوم",6,7,"tr",188,7], [76,"Os","أوزميوم",6,8,"tr",185,2], [77,"Ir","إيريديوم",6,9,"tr",180,2], [78,"Pt","بلاتين",6,10,"tr",177,2], [79,"Au","ذهب",6,11,"tr",174,1], [80,"Hg","زئبق",6,12,"tr",171,2], [81,"Tl","ثاليوم",6,13,"m",156,3], [82,"Pb","رصاص",6,14,"m",154,4], [83,"Bi","بزموت",6,15,"m",143,5], [84,"Po","بولونيوم",6,16,"met",135,6], [85,"At","أستاتين",6,17,"hal",127,7], [86,"Rn","رادون",6,18,"nb",120,8],
+    [87,"Fr","فرانسيوم",7,1,"alk",310,1], [88,"Ra","راديوم",7,2,"alk2",260,2],
+    [89,"Ac","أكتينيوم",7,3,"act",195,3], [90,"Th","ثوريوم",7,3,"act",180,4], [91,"Pa","بروتكتينيوم",7,3,"act",180,5], [92,"U","يورانيوم",7,3,"act",175,6], [93,"Np","نبتونيوم",7,3,"act",175,5], [94,"Pu","بلوتونيوم",7,3,"act",175,4], [95,"Am","أمريسيوم",7,3,"act",175,3], [96,"Cm","كوريوم",7,3,"act",176,3], [97,"Bk","بركليوم",7,3,"act",176,3], [98,"Cf","كاليفورنيوم",7,3,"act",176,3], [99,"Es","أينشتاينيوم",7,3,"act",176,3], [100,"Fm","فيرميوم",7,3,"act",176,3], [101,"Md","مندليفيوم",7,3,"act",176,3], [102,"No","نوبليوم",7,3,"act",176,2], [103,"Lr","لورنسيوم",7,3,"act",176,3],
+    [104,"Rf","رذرفورديوم",7,4,"tr",175,4], [105,"Db","دوبنيوم",7,5,"tr",175,5], [106,"Sg","سيبورغيوم",7,6,"tr",175,6], [107,"Bh","بوريوم",7,7,"tr",175,7], [108,"Hs","هاسيوم",7,8,"tr",175,2], [109,"Mt","مايتنريوم",7,9,"tr",175,2], [110,"Ds","دارمشتاتيوم",7,10,"tr",175,2], [111,"Rg","رونتجينيوم",7,11,"tr",175,1], [112,"Cn","كوبرنيسيوم",7,12,"tr",175,2], [113,"Nh","نيهونيوم",7,13,"m",170,3], [114,"Fl","فليروفيوم",7,14,"m",160,4], [115,"Mc","موسكوفيوم",7,15,"m",150,5], [116,"Lv","ليفرموريوم",7,16,"m",140,6], [117,"Ts","تينيسين",7,17,"hal",135,7], [118,"Og","أوغانيسون",7,18,"nb",130,8]
+  ];
+
+  let selectedZ = 11; // صوديوم افتراضياً
+  let activeTrend = "radius";
+  let microScope = "period";
+  let microNum = 3;
+  let p4Index = 0; // الدورة الرابعة من K إلى Kr
+
+  // عناصر الدورة الرابعة (18 عنصراً)
+  const P4_ELEMENTS = ALL_118.filter(e => e[3] === 4);
+
+  // عناصر الزمرة الأولى للاختبار المائي
+  const ALKALI_METALS = [
+    { z: 3, sym: "Li", name: "الليثيوم", flame: "#ef4444", vig: 1, desc: "فوران هادئ وتصاعد لغاز الهيدروجين: 2Li + 2H₂O ➔ 2LiOH + H₂" },
+    { z: 11, sym: "Na", name: "الصوديوم", flame: "#facc15", vig: 2, desc: "يذوب ككرة تتدحرج بسرعة فائقة على السطح بلهب أصفر وفرقعة لطيفة." },
+    { z: 19, sym: "البوتاسيوم", sym: "K", name: "البوتاسيوم", flame: "#c084fc", vig: 3, desc: "اشتعال فوري عنيف بلهب بنفسجي مميز (Lilac Flame) وانفجار سريع." },
+    { z: 37, sym: "Rb", name: "الروبيديوم", flame: "#f43f5e", vig: 4, desc: "اشتعال وانفجار فوري يكسر القاع الزجاجي لشدة النشاط." },
+    { z: 55, sym: "Cs", name: "السيزيوم", flame: "#38bdf8", vig: 5, desc: "صدمة انفجارية لحظية تعكس القمة في كبر نصف القطر وضعف جذب النواة." }
+  ];
+
+  // محرك صوتي Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playBeep(f, d = 0.08) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d);
+  }
+
+  function playExplodeSound(vig) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const dur = 0.15 * vig;
+    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.3));
+    const src = audioCtx.createBufferSource(); src.buffer = buf;
+    src.connect(audioCtx.destination); src.start();
+  }
+
+  // رسم الجدول الدوري الكامل (118 عنصراً)
+  function renderFullGrid() {
+    const grid = document.getElementById("periodicGrid");
+    grid.innerHTML = "";
+
+    // بناء شبكة 7 دورات × 18 زمرة + صفين سفليين
+    for (let r = 1; r <= 7; r++) {
+      for (let c = 1; c <= 18; c++) {
+        // فحص وجود عنصر رئيسي
+        let el = ALL_118.find(item => item[3] === r && item[4] === c);
+
+        // حجز خانتي اللانثانيدات والأكتينيدات في الجدول
+        if (r === 6 && c === 3) el = ALL_118.find(item => item[0] === 57);
+        if (r === 7 && c === 3) el = ALL_118.find(item => item[0] === 89);
+
+        const cell = document.createElement("div");
+        if (el) {
+          cell.className = `cell`;
+          cell.id = `cell-${el[0]}`;
+          cell.innerHTML = `<span class="z-num">${el[0]}</span><span class="sym">${el[1]}</span>`;
+          cell.onclick = () => selectElement(el[0]);
+          applyCellColor(cell, el);
+        } else {
+          cell.style.visibility = "hidden";
+        }
+        grid.appendChild(cell);
+      }
+    }
+
+    // إضافة سطر اللانثانيدات والأكتينيدات المنفصلين
+    renderFBlockRow(grid, 58, 71, "لانثانيدات 58-71");
+    renderFBlockRow(grid, 90, 103, "أكتينيدات 90-103");
+  }
+
+  function renderFBlockRow(grid, startZ, endZ, label) {
+    for (let i = 0; i < 3; i++) {
+      const spacer = document.createElement("div");
+      spacer.style.visibility = "hidden";
+      grid.appendChild(spacer);
+    }
+    for (let z = startZ; z <= endZ; z++) {
+      const el = ALL_118.find(item => item[0] === z);
+      const cell = document.createElement("div");
+      cell.className = `cell`;
+      cell.id = `cell-${el[0]}`;
+      cell.innerHTML = `<span class="z-num">${el[0]}</span><span class="sym">${el[1]}</span>`;
+      cell.onclick = () => selectElement(el[0]);
+      applyCellColor(cell, el);
+      grid.appendChild(cell);
+    }
+    for (let i = 0; i < 1; i++) {
+      const spacer = document.createElement("div");
+      spacer.style.visibility = "hidden";
+      grid.appendChild(spacer);
+    }
+  }
+
+  // تلوين الخلية بحسب الخاصية الحرارية المحددة
+  function applyCellColor(cell, el) {
+    const radius = el[6];
+    const cat = el[5];
+    const val = el[7];
+
+    if (activeTrend === "radius") {
+      // تدرج لوني لنصف القطر: من 31pm (بنفسجي غامق صغير) إلى 310pm (سماوي ساطع كبير)
+      const ratio = Math.max(0, Math.min(1, (radius - 31) / (310 - 31)));
+      const r = Math.round(15 + ratio * 40);
+      const g = Math.round(30 + ratio * 155);
+      const b = Math.round(70 + ratio * 185);
+      cell.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+      cell.style.color = ratio > 0.4 ? "#0f172a" : "#cbd5e1";
+    } else if (activeTrend === "metal") {
+      if (cat === "alk" || cat === "alk2" || cat === "m" || cat === "tr" || cat === "lan" || cat === "act") {
+        cell.style.backgroundColor = "rgba(56, 189, 248, 0.25)"; cell.style.color = "#38bdf8";
+      } else if (cat === "met") {
+        cell.style.backgroundColor = "rgba(16, 185, 129, 0.35)"; cell.style.color = "#34d399";
+      } else if (cat === "nb") {
+        cell.style.backgroundColor = "rgba(192, 132, 252, 0.25)"; cell.style.color = "#c084fc";
+      } else {
+        cell.style.backgroundColor = "rgba(245, 158, 11, 0.3)"; cell.style.color = "#fbbf24";
+      }
+    } else if (activeTrend === "valence") {
+      const ratio = val / 8;
+      cell.style.backgroundColor = `rgba(250, 204, 21, ${0.15 + ratio * 0.55})`;
+      cell.style.color = ratio > 0.5 ? "#000" : "#fef08a";
+    }
+  }
+
+  function setHeatmapTrend(trend) {
+    activeTrend = trend;
+    document.querySelectorAll(".strip-btn").forEach(b => b.classList.remove("active"));
+    if (trend === "radius") document.getElementById("btnTrendRadius").classList.add("active");
+    if (trend === "metal") document.getElementById("btnTrendMetal").classList.add("active");
+    if (trend === "valence") document.getElementById("btnTrendValence").classList.add("active");
+
+    playBeep(480);
+    renderFullGrid();
+    highlightElementAndTrends();
+  }
+
+  function selectElement(z) {
+    selectedZ = z;
+    playBeep(560);
+    highlightElementAndTrends();
+  }
+
+  function highlightElementAndTrends() {
+    const el = ALL_118.find(item => item[0] === selectedZ);
+    if (!el) return;
+
+    document.querySelectorAll(".cell").forEach(c => {
+      c.classList.remove("selected", "in-period", "in-group");
+    });
+
+    const activeCell = document.getElementById(`cell-${el[0]}`);
+    if (activeCell) activeCell.classList.add("selected");
+
+    // تظليل الدورة والزمرة لتوضيح التدرج
+    ALL_118.forEach(item => {
+      const c = document.getElementById(`cell-${item[0]}`);
+      if (!c) return;
+      if (item[3] === el[3] && item[0] !== el[0]) c.classList.add("in-period");
+      if (item[4] === el[4] && item[0] !== el[0]) c.classList.add("in-group");
+    });
+
+    // تحديث بطاقة العنصر
+    document.getElementById("cardZ").innerText = el[0];
+    document.getElementById("cardSym").innerText = el[1];
+    document.getElementById("cardRadius").innerText = `${el[6]} pm`;
+    document.getElementById("cardNameAr").innerText = `${el[2]} (${el[1]})`;
+
+    const badge = document.getElementById("badgeTrend");
+    badge.innerText = `الدورة ${el[3]} • الزمرة ${el[4]}`;
+
+    document.getElementById("cardDesc").innerHTML = `
+      نصف القطر الذري: <b>${el[6]} بيكومتر</b> • إلكترونات التكافؤ: <b>${el[7]}</b>.<br>
+      <span style="color:#facc15;">التدرج: يصغر الحجم أفقياً لزيادة جذب النواة، ويكبر رأسياً لإضافة أغلفة طاقة جديدة.</span>
+    `;
+
+    document.getElementById("infoTitle").innerText = `تحليل تدرج عنصر ${el[2]}:`;
+    document.getElementById("infoText").innerHTML = `
+      <b>أفقياً في الدورة ${el[3]}:</b> يقل الحجم الذري وتتناقص الصفة الفلزية بزيادة العدد الذري من اليسار لليمين.<br>
+      <b>رأسياً في الزمرة ${el[4]}:</b> يزداد الحجم الذري وتزداد الفلزية كلما اتجهنا للأسفل لإضافة مستويات طاقة جديدة.
+    `;
+  }
+
+  // التبديل بين الأقسام الأربعة
+  function switchTab(tab) {
+    document.querySelectorAll(".nav-tab-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("sectionMap").style.display = "none";
+    document.getElementById("sectionMicro").style.display = "none";
+    document.getElementById("sectionWater").style.display = "none";
+    document.getElementById("sectionP4").style.display = "none";
+
+    playBeep(420);
+
+    if (tab === "map") {
+      document.getElementById("btnTabMap").classList.add("active");
+      document.getElementById("sectionMap").style.display = "flex";
+      highlightElementAndTrends();
+    } else if (tab === "micro") {
+      document.getElementById("btnTabMicro").classList.add("active");
+      document.getElementById("sectionMicro").style.display = "flex";
+      updateMicroScope();
+    } else if (tab === "water") {
+      document.getElementById("btnTabWater").classList.add("active");
+      document.getElementById("sectionWater").style.display = "flex";
+      renderWaterBucket();
+    } else if (tab === "p4") {
+      document.getElementById("btnTabP4").classList.add("active");
+      document.getElementById("sectionP4").style.display = "flex";
+      renderPeriod4Stage();
+    }
+  }
+
+  // --- مجهر الحجم النسبي (Microscope Canvas) ---
+  const mCanvas = document.getElementById("microCanvas");
+  const mCtx = mCanvas.getContext("2d");
+
+  function setMicroScope(scope) {
+    microScope = scope;
+    document.getElementById("btnScopePeriod").className = scope === "period" ? "act-btn active" : "act-btn";
+    document.getElementById("btnScopeGroup").className = scope === "group" ? "act-btn active" : "act-btn";
+
+    const s = document.getElementById("microSlider");
+    if (scope === "period") {
+      s.min = 1; s.max = 7; s.value = 3;
+      document.getElementById("lblSliderNum").innerText = "اختر الدورة (1-7):";
+    } else {
+      s.min = 1; s.max = 18; s.value = 1;
+      document.getElementById("lblSliderNum").innerText = "اختر الزمرة (1-18):";
+    }
+    updateMicroScope();
+  }
+
+  function updateMicroScope() {
+    const val = parseInt(document.getElementById("microSlider").value);
+    microNum = val;
+    document.getElementById("txtSliderVal").innerText = microScope === "period" ? `الدورة ${val}` : `الزمرة ${val}`;
+
+    const items = microScope === "period"
+      ? ALL_118.filter(e => e[3] === val && e[4] !== 3 || (e[3]===val && e[0]<=57))
+      : ALL_118.filter(e => e[4] === val);
+
+    renderMicroCanvas(items);
+  }
+
+  function renderMicroCanvas(items) {
+    mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+    if (!items.length) return;
+
+    const count = items.length;
+    const spacing = mCanvas.width / (count + 1);
+
+    items.forEach((el, idx) => {
+      const cx = spacing * (idx + 1);
+      const cy = 100;
+      // قياس نسبي دقيق للرسم
+      const r = Math.max(8, (el[6] / 310) * 36);
+
+      // رسم الذرة ككرة مضيئة بحجمها الحقيقي
+      const grad = mCtx.createRadialGradient(cx - r*0.3, cy - r*0.3, r*0.1, cx, cy, r);
+      grad.addColorStop(0, "#ffffff");
+      grad.addColorStop(0.4, "#38bdf8");
+      grad.addColorStop(1, "#0369a1");
+
+      mCtx.fillStyle = grad;
+      mCtx.beginPath(); mCtx.arc(cx, cy, r, 0, Math.PI * 2); mCtx.fill();
+
+      // رمز العنصر والكتلة
+      mCtx.fillStyle = "#ffffff"; mCtx.font = "bold 10.5px monospace"; mCtx.textAlign = "center";
+      mCtx.fillText(el[1], cx, cy + 3.5);
+
+      mCtx.fillStyle = "#facc15"; mCtx.font = "8.5px monospace";
+      mCtx.fillText(`${el[6]}pm`, cx, cy + r + 14);
+    });
+
+    // أسهم التوضيح المنهجي
+    mCtx.fillStyle = "#94a3b8"; mCtx.font = "bold 10px 'Cairo', sans-serif"; mCtx.textAlign = "center";
+    if (microScope === "period") {
+      mCtx.fillText("⬅ يقل الحجم الذري بالاتجاه يميناً (لزيادة شحنة النواة الموجبة وجذبها للإلكترونات)", mCanvas.width / 2, 25);
+    } else {
+      mCtx.fillText("⬇ يزداد الحجم الذري بالنزول لأسفل (لإضافة مستويات طاقة وأغلفة جديدة)", mCanvas.width / 2, 25);
+    }
+  }
+
+  // --- محاكاة حوض التفاعل المائي (Water Canvas) ---
+  const wCanvas = document.getElementById("waterCanvas");
+  const wCtx = wCanvas.getContext("2d");
+  let waterAnim = { active: false, metal: ALKALI_METALS[1], progress: 0, x: 245, y: 30 };
+
+  function dropAlkali(idx) {
+    waterAnim.metal = ALKALI_METALS[idx];
+    waterAnim.active = true;
+    waterAnim.progress = 0;
+    waterAnim.x = 245;
+    waterAnim.y = 30;
+
+    document.getElementById("infoTitle").innerText = `تفاعل ${waterAnim.metal.name} مع الماء:`;
+    document.getElementById("infoText").innerHTML = `<b>${waterAnim.metal.desc}</b><br><span style="color:#38bdf8;">الاستنتاج: يزداد النشاط كلما اتجهنا للأسفل لسهولة فقدان إلكترون التكافؤ لبعده عن النواة.</span>`;
+
+    playBeep(350);
+  }
+
+  function renderWaterBucket() {
+    wCtx.clearRect(0, 0, wCanvas.width, wCanvas.height);
+
+    // حوض الماء الزجاجي
+    wCtx.strokeStyle = "rgba(255,255,255,0.4)"; wCtx.lineWidth = 3;
+    wCtx.strokeRect(80, 60, 330, 120);
+
+    // الماء
+    wCtx.fillStyle = "rgba(56, 189, 248, 0.3)";
+    wCtx.fillRect(82, 80, 326, 98);
+
+    // سطح الماء
+    wCtx.strokeStyle = "#38bdf8"; wCtx.lineWidth = 1.5;
+    wCtx.beginPath(); wCtx.moveTo(82, 80); wCtx.lineTo(408, 80); wCtx.stroke();
+
+    if (waterAnim.active) {
+      waterAnim.progress += 0.02;
+
+      // سقوط القطعة حتى السطح
+      if (waterAnim.y < 80) {
+        waterAnim.y += 3;
+      } else {
+        // حركة فوران فوق سطح الماء
+        waterAnim.x += (Math.random() - 0.5) * (waterAnim.metal.vig * 5);
+        waterAnim.x = Math.max(100, Math.min(390, waterAnim.x));
+
+        // تأثير اللهب والانفجار بحسب شدة الفلز
+        const vig = waterAnim.metal.vig;
+        wCtx.save();
+        wCtx.fillStyle = waterAnim.metal.flame;
+        wCtx.shadowColor = waterAnim.metal.flame;
+        wCtx.shadowBlur = 10 * vig;
+
+        wCtx.beginPath();
+        wCtx.arc(waterAnim.x, 76, 5 + vig * 3 + Math.random() * 4, 0, Math.PI * 2);
+        wCtx.fill();
+        wCtx.restore();
+
+        // فقاعات الهيدروجين
+        for (let b = 0; b < vig * 3; b++) {
+          wCtx.fillStyle = "rgba(255,255,255,0.7)";
+          wCtx.beginPath();
+          wCtx.arc(waterAnim.x + (Math.random() - 0.5) * 20, 85 + Math.random() * 40, 2 + Math.random() * 2, 0, 6.28);
+          wCtx.fill();
+        }
+
+        if (waterAnim.progress > 0.3 && Math.random() < 0.1) playExplodeSound(vig);
+      }
+
+      // رسم قطعة الفلز
+      wCtx.fillStyle = "#cbd5e1";
+      wCtx.beginPath(); wCtx.arc(waterAnim.x, waterAnim.y, 6, 0, 6.28); wCtx.fill();
+
+      if (waterAnim.progress >= 1) waterAnim.active = false;
+    }
+
+    requestAnimationFrame(renderWaterBucket);
+  }
+
+  // --- رحلة الدورة الرابعة (Period 4 Canvas) ---
+  const p4Canvas = document.getElementById("p4Canvas");
+  const p4Ctx = p4Canvas.getContext("2d");
+
+  function stepP4(dir) {
+    p4Index = Math.max(0, Math.min(P4_ELEMENTS.length - 1, p4Index + dir));
+    playBeep(450);
+    renderPeriod4Stage();
+  }
+
+  function renderPeriod4Stage() {
+    p4Ctx.clearRect(0, 0, p4Canvas.width, p4Canvas.height);
+    const el = P4_ELEMENTS[p4Index];
+
+    document.getElementById("txtP4Progress").innerText = `عنصر ${p4Index + 1} / 18: ${el[2]} (${el[1]})`;
+
+    // شريط مسار الدورة الرابعة
+    p4Ctx.strokeStyle = "#334155"; p4Ctx.lineWidth = 4;
+    p4Ctx.beginPath(); p4Ctx.moveTo(40, 160); p4Ctx.lineTo(450, 160); p4Ctx.stroke();
+
+    // مؤشرات العناصر على المسار
+    P4_ELEMENTS.forEach((item, idx) => {
+      const x = 40 + idx * (410 / 17);
+      p4Ctx.fillStyle = idx === p4Index ? "#facc15" : (idx < p4Index ? "#38bdf8" : "#475569");
+      p4Ctx.beginPath(); p4Ctx.arc(x, 160, idx === p4Index ? 6 : 3, 0, Math.PI * 2); p4Ctx.fill();
+    });
+
+    // رسم ذرة العنصر الحالية في المركز
+    const cx = 245, cy = 75;
+    const r = (el[6] / 243) * 38;
+
+    const grad = p4Ctx.createRadialGradient(cx - r*0.3, cy - r*0.3, 2, cx, cy, r);
+    grad.addColorStop(0, "#ffffff");
+    grad.addColorStop(0.4, p4Index === 0 ? "#ef4444" : (p4Index < 12 ? "#38bdf8" : (p4Index === 12 ? "#10b981" : "#f59e0b")));
+    grad.addColorStop(1, "#0f172a");
+
+    p4Ctx.fillStyle = grad;
+    p4Ctx.beginPath(); p4Ctx.arc(cx, cy, r, 0, 6.28); p4Ctx.fill();
+
+    p4Ctx.fillStyle = "#fff"; p4Ctx.font = "bold 16px monospace"; p4Ctx.textAlign = "center";
+    p4Ctx.fillText(el[1], cx, cy + 5);
+
+    // بطاقة الشرح المنهجي لعناصر الدورة الرابعة ص 63
+    let p4Note = "";
+    if (el[1] === "K") p4Note = "<b>البداية:</b> فلز قلوي رخو شديد التفاعل الكيميائي يحفظ تحت الزيت.";
+    else if (el[1] === "Ca") p4Note = "فلز قلوي ترابي صلب يدخل في تكوين العظام والأسنان والإسمنت.";
+    else if (["Fe","Cu","Zn"].includes(el[1])) p4Note = "<b>وسط الدورة:</b> فلزات انتقالية صلبة وموصلة وقوية تقاوم التآكل وتدخل بالسبائك.";
+    else if (el[1] === "Ge") p4Note = "<b>على الخط المتعرج:</b> شبه فلز متوازن الخواص توقعه مندليف بعبقرية.";
+    else if (el[1] === "Br") p4Note = "<b>قرب النهاية:</b> لافلز سائل نشط جداً يبحث عن إلكترون لإكمال مداره.";
+    else if (el[1] === "Kr") p4Note = "<b>الختام:</b> غاز نبيل خامل مكتمل الغلاف الخارجي بـ 8 إلكترونات مستقرة.";
+    else p4Note = `عنصر يمتلك 4 أغلفة إلكترونية، نصف قطره ${el[6]} بيكومتر.`;
+
+    document.getElementById("infoTitle").innerText = `محطة الدورة 4: ${el[2]} (${el[1]})`;
+    document.getElementById("infoText").innerHTML = p4Note;
+  }
+
+  // التشغيل الأولي للمحاكاة
+  renderFullGrid();
+  highlightElementAndTrends();
+</script>
+</body>
+</html>
