@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>تشكل الأيونات الموجبة والسالبة | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 12px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11.5px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* شريط اختيار العناصر */
+    .presets-bar {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
+    }
+    .presets-bar::-webkit-scrollbar { display: none; }
+    .preset-btn {
+      flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold;
+      cursor: pointer; transition: all 0.2s; font-family: 'Cairo', sans-serif;
+    }
+    .preset-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+    .preset-btn.reaction { border-color: #f59e0b; color: #f59e0b; }
+    .preset-btn.reaction.active { background: #d97706; color: #fff; border-color: #f59e0b; }
+
+    /* لوحة حالة الذرة والأيون */
+    .status-card {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; background: #1e293b;
+      padding: 8px 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;
+    }
+    .status-item { display: flex; flex-direction: column; gap: 1px; }
+    .status-lbl { font-size: 10.5px; color: #94a3b8; font-weight: 600; }
+    .status-val { font-size: 14px; font-weight: 800; font-family: monospace; color: #f8fafc; }
+    .val-cation { color: #f87171; }
+    .val-anion { color: #38bdf8; }
+    .val-stable { color: #10b981; }
+
+    /* كانفاس الرسم */
+    .canvas-wrapper {
+      position: relative; width: 100%; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: center;
+    }
+    canvas { display: block; width: 100%; max-width: 460px; height: auto; }
+
+    /* المعادلة الكيميائية */
+    .equation-bar {
+      background: #0f172a; border: 1px solid #1e293b; border-radius: 8px;
+      padding: 6px 12px; text-align: center; font-size: 14px; font-weight: 800;
+      color: #facc15; font-family: monospace; letter-spacing: 0.5px; direction: ltr;
+    }
+
+    /* لوحة التحكم المقيدة علمياً */
+    .controls-panel {
+      width: 100%; background: #1e293b; padding: 10px 12px; border-radius: 12px;
+      display: flex; gap: 8px; border: 1px solid #334155;
+    }
+    .btn {
+      flex: 1; padding: 8px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; border: none;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-action { background: #10b981; color: white; border: 1px solid #34d399; }
+    .btn-action.lose { background: #ef4444; border-color: #f87171; }
+    .btn-action.gain { background: #0284c7; border-color: #38bdf8; }
+    .btn-action.rxn { background: #f59e0b; border-color: #fbbf24; }
+    .btn-reset { background: #334155; color: #f1f5f9; border: 1px solid #475569; flex: 0.45; }
+
+    /* صندوق الشرح العلمي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 80px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>تشكل الأيونات الموجبة والسالبة</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- شريط اختيار الحالات التعليمية -->
+  <div class="presets-bar" id="presetsBar"></div>
+
+  <!-- لوحة البيانات اللحظية للذرة/الأيون -->
+  <div class="status-card" id="statusCard"></div>
+
+  <!-- معادلة التأين المنهجية -->
+  <div class="equation-bar" id="equationBar">Na ➔ Na⁺ + 1e⁻</div>
+
+  <!-- منطقة الرسم الكيميائي -->
+  <div class="canvas-wrapper">
+    <canvas id="simCanvas" width="460" height="320"></canvas>
+  </div>
+
+  <!-- أزرار التحكم المقيدة علمياً لمنع الأخطاء -->
+  <div class="controls-panel" id="controlsPanel"></div>
+
+  <!-- بطاقة التفسير العلمي المنهجي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">التفسير العلمي:</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // تعريف العناصر المنهجية وقواعد التأين الصارمة
+  const elementsData = {
+    Na: {
+      name: "الصوديوم (Na)", type: "metal", z: 11, n: 12, defaultE: 11, valence: 1, ionValence: 1,
+      ionType: "cation", ionName: "أيون الصوديوم الموجب (Na⁺)",
+      orbitRadii: [38, 70, 102],
+      neutralOrbits: [2, 8, 1], ionOrbits: [2, 8, 0],
+      eqNeutral: "Na (ذرة متعادلة: 11p⁺ / 11e⁻)",
+      eqIon: "Na ➔ Na⁺ + 1e⁻",
+      descNeutral: "ذرة الصوديوم تمتلك إلكتروناً واحداً فقط في مدارها الثالث (الخارجي). لكونه بعيداً عن جذب النواة الموجبة، يسهل فقدانه.",
+      descIon: "<b>فقدت الذرة إلكترون التكافؤ:</b> أصبح مدارها الثاني مشبعاً ومستقراً بـ 8 إلكترونات، وزادت البروتونات عن الإلكترونات بشحنة واحدة لتصبح أيوناً موجباً (Na⁺)."
+    },
+    F: {
+      name: "الفلور (F)", type: "nonmetal", z: 9, n: 10, defaultE: 9, valence: 7, ionValence: 1,
+      ionType: "anion", ionName: "أيون الفلور السالب (F⁻)",
+      orbitRadii: [45, 85],
+      neutralOrbits: [2, 7], ionOrbits: [2, 8],
+      eqNeutral: "F (ذرة متعادلة: 9p⁺ / 9e⁻)",
+      eqIon: "F + 1e⁻ ➔ F⁻",
+      descNeutral: "ذرة الفلور تمتلك 7 إلكترونات في مدارها الثاني والأخير. تنجذب الإلكترونات بقوة نحو النواة، ويسهل عليها اكتساب إلكترون واحد.",
+      descIon: "<b>اكتسبت الذرة إلكتروناً:</b> تشبع المدار الثاني بـ 8 إلكترونات وحققت الاستقرار الثماني. أصبحت الإلكترونات (10) أكثر من البروتونات (9) لتكون أيوناً سالباً (F⁻)."
+    },
+    Mg: {
+      name: "المغنيسيوم (Mg)", type: "metal", z: 12, n: 12, defaultE: 12, valence: 2, ionValence: 2,
+      ionType: "cation", ionName: "أيون المغنيسيوم ثنائي الشحنة (Mg²⁺)",
+      orbitRadii: [38, 70, 102],
+      neutralOrbits: [2, 8, 2], ionOrbits: [2, 8, 0],
+      eqNeutral: "Mg (ذرة متعادلة: 12p⁺ / 12e⁻)",
+      eqIon: "Mg ➔ Mg²⁺ + 2e⁻",
+      descNeutral: "يمتلك المغنيسيوم إلكترونين في المدار الأخير. من الأسهل طاقياً فقد هذين الإلكترونين للوصول لغلاف مكتمل.",
+      descIon: "<b>فقدان إلكتروني التكافؤ:</b> تحولت الذرة إلى أيون موجب ثنائي الشحنة (Mg²⁺) بمدار خارجي ثانٍ مكتمل بـ 8 إلكترونات ومستقر تماماً."
+    },
+    O: {
+      name: "الأوكسجين (O)", type: "nonmetal", z: 8, n: 8, defaultE: 8, valence: 6, ionValence: 2,
+      ionType: "anion", ionName: "أيون الأوكسيد ثنائي الشحنة (O²⁻)",
+      orbitRadii: [45, 85],
+      neutralOrbits: [2, 6], ionOrbits: [2, 8],
+      eqNeutral: "O (ذرة متعادلة: 8p⁺ / 8e⁻)",
+      eqIon: "O + 2e⁻ ➔ O²⁻",
+      descNeutral: "تمتلك ذرة الأوكسجين 6 إلكترونات تكافؤ في مدارها الخارجي، وتحتاج إلكترونين ليكتمل الغلاف الثاني بالحد الأقصى (8).",
+      descIon: "<b>اكتساب إلكترونين:</b> أصبح المدار الخارجي مكتملاً بثمانية إلكترونات مستقرة، وأصبحت محصلة الشحنة (-2) لزيادة الإلكترونات عن البروتونات بمقدار 2."
+    },
+    Rxn: {
+      name: "انتقال الإلكترون (Na + F)", type: "reaction",
+      descNeutral: "ذرة صوديوم (فلز يريد التخلص من إلكترون) بجانب ذرة فلور (لافلز بحاجة ماسة لإلكترون). اضغط زر الانتقال لتشاهد التفاعل.",
+      descIon: "<b>تكون الرابطة الأيونية:</b> انتقل الإلكترون كلياً من الصوديوم إلى الفلور، فتكون أيون صوديوم موجب (Na⁺) وأيون فلور سالب (F⁻) وتجاذبا كهرومغناطيسياً لتكوين ملح NaF."
+    }
+  };
+
+  let currentKey = "Na";
+  let isIonized = false;
+  let animatingElectron = null; // أنيميشن قفز الإلكترون
+  let globalAngle = 0;
+
+  // توليد أصوات فيزيائية تفاعلية
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playTone(freq, dur = 0.12, type = 'sine') {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  }
+
+  // بناء شريط العناصر
+  const pBar = document.getElementById("presetsBar");
+  Object.keys(elementsData).forEach(k => {
+    const btn = document.createElement("button");
+    btn.className = `preset-btn ${k === 'Na' ? 'active' : ''} ${k === 'Rxn' ? 'reaction' : ''}`;
+    btn.id = `preset-${k}`;
+    btn.innerText = elementsData[k].name;
+    btn.onclick = () => selectPreset(k);
+    pBar.appendChild(btn);
+  });
+
+  function selectPreset(k) {
+    currentKey = k;
+    isIonized = false;
+    animatingElectron = null;
+    document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(`preset-${k}`).classList.add("active");
+    playTone(480, 0.08);
+    updateUI();
+  }
+
+  function performIonization() {
+    if (isIonized) return;
+    isIonized = true;
+    const data = elementsData[currentKey];
+
+    if (currentKey === 'Rxn') {
+      // انطلاق إلكترون الصوديوم إلى الفلور
+      animatingElectron = {
+        fromX: 140 + 82, fromY: 160,
+        toX: 320 - 68, toY: 160,
+        x: 140 + 82, y: 160,
+        progress: 0
+      };
+      playTone(600, 0.3, 'triangle');
+    } else if (data.type === 'metal') {
+      // إلكترون ينفلت بعيداً
+      animatingElectron = {
+        fromX: 230 + data.orbitRadii[data.orbitRadii.length - 1], fromY: 160,
+        toX: 420, toY: 50,
+        x: 230 + data.orbitRadii[data.orbitRadii.length - 1], y: 160,
+        progress: 0
+      };
+      playTone(400, 0.25, 'sawtooth');
+    } else {
+      // إلكترون يدخل من الخارج
+      animatingElectron = {
+        fromX: 40, fromY: 50,
+        toX: 230 + data.orbitRadii[data.orbitRadii.length - 1], toY: 160,
+        x: 40, y: 50,
+        progress: 0
+      };
+      playTone(720, 0.25, 'sine');
+    }
+    updateUI();
+  }
+
+  function resetState() {
+    isIonized = false;
+    animatingElectron = null;
+    playTone(350, 0.08);
+    updateUI();
+  }
+
+  function updateUI() {
+    const data = elementsData[currentKey];
+    const statusCard = document.getElementById("statusCard");
+    const eqBar = document.getElementById("equationBar");
+    const ctrl = document.getElementById("controlsPanel");
+    const infoT = document.getElementById("infoTitle");
+    const infoD = document.getElementById("infoText");
+
+    if (currentKey === 'Rxn') {
+      statusCard.innerHTML = `
+        <div class="status-item"><span class="status-lbl">المتفاعلات</span><span class="status-val">Na + F</span></div>
+        <div class="status-item"><span class="status-lbl">نوع الرابطة</span><span class="status-val val-cation">أيونية (Ionic)</span></div>
+        <div class="status-item"><span class="status-lbl">المركب الناتج</span><span class="status-val val-stable">${isIonized ? 'NaF مستقر' : 'تجاذب قيد الانتظار'}</span></div>
+      `;
+      eqBar.innerText = isIonized ? "Na + F ➔ Na⁺ + F⁻ ➔ NaF" : "Na + F (ذرات متعادلة)";
+      ctrl.innerHTML = `
+        <button class="btn btn-action rxn" onclick="performIonization()" ${isIonized ? 'disabled style="opacity:0.5"' : ''}>⚡ إجراء انتقال الإلكترون وتكوين الأيونين</button>
+        <button class="btn btn-reset" onclick="resetState()">🔄 إعادة</button>
+      `;
+      infoT.innerText = "تفاعل تكوين الرابطة الأيونية:";
+      infoD.innerHTML = isIonized ? data.descIon : data.descNeutral;
+      return;
+    }
+
+    // العناصر المفردة
+    const curP = data.z;
+    const curE = isIonized ? (data.type === 'metal' ? data.z - data.ionValence : data.z + data.ionValence) : data.z;
+    const netCharge = curP - curE;
+
+    let chargeStr = "0 (متعادلة)";
+    let chargeClass = "val-stable";
+    if (netCharge > 0) { chargeStr = `+${netCharge} (كاتيون)`; chargeClass = "val-cation"; }
+    else if (netCharge < 0) { chargeStr = `${netCharge} (أنيون)`; chargeClass = "val-anion"; }
+
+    statusCard.innerHTML = `
+      <div class="status-item"><span class="status-lbl">البروتونات (p⁺)</span><span class="status-val">${curP}</span></div>
+      <div class="status-item"><span class="status-lbl">الإلكترونات (e⁻)</span><span class="status-val">${curE}</span></div>
+      <div class="status-item"><span class="status-lbl">محصلة الشحنة</span><span class="status-val ${chargeClass}">${chargeStr}</span></div>
+    `;
+
+    eqBar.innerText = isIonized ? data.eqIon : data.eqNeutral;
+
+    // أزرار آمنة موجهة علمياً:
+    let actionBtnText = "";
+    let actionBtnClass = "";
+    if (data.type === 'metal') {
+      actionBtnText = `فقدان ${data.ionValence === 1 ? 'إلكترون التكافؤ' : 'إلكتروني التكافؤ'} (تحول إلى أيون موجب)`;
+      actionBtnClass = "btn btn-action lose";
+    } else {
+      actionBtnText = `اكتساب ${data.ionValence === 1 ? 'إلكترون' : 'إلكترونين'} (تحول إلى أيون سالب)`;
+      actionBtnClass = "btn btn-action gain";
+    }
+
+    ctrl.innerHTML = `
+      <button class="${actionBtnClass}" onclick="performIonization()" ${isIonized ? 'disabled style="opacity:0.5"' : ''}>${actionBtnText}</button>
+      <button class="btn btn-reset" onclick="resetState()">🔄 ذرة متعادلة</button>
+    `;
+
+    infoT.innerText = isIonized ? data.ionName : data.name;
+    infoT.style.color = isIonized ? (data.type === 'metal' ? '#f87171' : '#38bdf8') : '#34d399';
+    infoD.innerHTML = isIonized ? data.descIon : data.descNeutral;
+  }
+
+  // محرك الرسم والتحريك
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    globalAngle += 0.015;
+
+    if (currentKey === 'Rxn') {
+      renderReactionMode();
+    } else {
+      renderSingleElementMode();
+    }
+
+    // رسم الإلكترون المنتقل إن وُجد
+    if (animatingElectron) {
+      animatingElectron.progress += 0.025;
+      animatingElectron.x = animatingElectron.fromX + (animatingElectron.toX - animatingElectron.fromX) * animatingElectron.progress;
+      animatingElectron.y = animatingElectron.fromY + (animatingElectron.toY - animatingElectron.fromY) * animatingElectron.progress;
+
+      ctx.save();
+      ctx.fillStyle = "#facc15";
+      ctx.shadowColor = "#facc15";
+      ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(animatingElectron.x, animatingElectron.y, 6.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#000"; ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center"; ctx.fillText("-", animatingElectron.x, animatingElectron.y + 3);
+      ctx.restore();
+
+      if (animatingElectron.progress >= 1) animatingElectron = null;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  // رسم العنصر المفرد
+  function renderSingleElementMode() {
+    const data = elementsData[currentKey];
+    const cx = 230, cy = 160;
+    const orbits = isIonized ? data.ionOrbits : data.neutralOrbits;
+
+    // المدارات
+    data.orbitRadii.forEach((r, idx) => {
+      // إخفاء المدار الأخير إذا فُقدت كل إلكتروناته
+      if (isIonized && idx === data.orbitRadii.length - 1 && data.type === 'metal') {
+        ctx.strokeStyle = "rgba(239, 68, 68, 0.15)";
+      } else {
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+      }
+      ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // النواة
+    drawNucleus(cx, cy, data.z, data.n, currentKey);
+
+    // الإلكترونات على المدارات
+    orbits.forEach((count, oIdx) => {
+      const r = data.orbitRadii[oIdx];
+      const dir = oIdx % 2 === 0 ? 1 : -1;
+      drawElectronsOnOrbit(cx, cy, r, count, globalAngle * dir);
+    });
+
+    // قوس الأيون وشحنته إن تأين
+    if (isIonized) {
+      drawIonBracket(cx, cy, data.orbitRadii[data.orbitRadii.length - (data.type === 'metal' ? 2 : 1)] + 18, data.type === 'metal' ? `+${data.ionValence}` : `${data.ionValence}-`);
+    }
+  }
+
+  // رسم وضع تفاعل الانتقال الأيوني المزدوج (Na + F)
+  function renderReactionMode() {
+    const naCX = 135, naCY = 160;
+    const fCX = 325, fCY = 160;
+
+    // 1. ذرة الصوديوم (يسار)
+    const naRadii = [32, 58, 84];
+    const naOrbits = isIonized ? [2, 8, 0] : [2, 8, 1];
+    naRadii.forEach(r => {
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.2)"; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.arc(naCX, naCY, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    });
+    drawNucleus(naCX, naCY, 11, 12, "Na");
+    naOrbits.forEach((count, idx) => drawElectronsOnOrbit(naCX, naCY, naRadii[idx], count, globalAngle * (idx % 2 === 0 ? 1 : -1)));
+
+    // 2. ذرة الفلور (يمين)
+    const fRadii = [34, 68];
+    const fOrbits = isIonized ? [2, 8] : [2, 7];
+    fRadii.forEach(r => {
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.2)"; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.arc(fCX, fCY, r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+    });
+    drawNucleus(fCX, fCY, 9, 10, "F");
+    fOrbits.forEach((count, idx) => drawElectronsOnOrbit(fCX, fCY, fRadii[idx], count, globalAngle * (idx % 2 === 0 ? -1 : 1)));
+
+    // أقواس وتجاذب الأيونين بعد الانتقال
+    if (isIonized && !animatingElectron) {
+      drawIonBracket(naCX, naCY, 74, "+1");
+      drawIonBracket(fCX, fCY, 84, "-1");
+
+      // سهم التجاذب الأيوني بينهما
+      ctx.strokeStyle = "#f59e0b"; ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(naCX + 80, naCY); ctx.lineTo(fCX - 88, naCY); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#f59e0b"; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("تجاذب أيوني (+ و -)", 230, naCY - 8);
+    }
+  }
+
+  function drawNucleus(cx, cy, p, n, sym) {
+    ctx.save();
+    const grad = ctx.createRadialGradient(cx, cy, 3, cx, cy, 22);
+    grad.addColorStop(0, "#ffffff");
+    grad.addColorStop(0.3, "#f87171");
+    grad.addColorStop(1, "#991b1b");
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 1.5; ctx.stroke();
+
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(sym, cx, cy + 4);
+    ctx.restore();
+  }
+
+  function drawElectronsOnOrbit(cx, cy, radius, count, angleOffset) {
+    for (let i = 0; i < count; i++) {
+      const th = angleOffset + (i * (Math.PI * 2 / count));
+      const ex = cx + Math.cos(th) * radius;
+      const ey = cy + Math.sin(th) * radius;
+
+      ctx.save();
+      const eGrad = ctx.createRadialGradient(ex, ey, 1, ex, ey, 6);
+      eGrad.addColorStop(0, "#ffffff");
+      eGrad.addColorStop(0.3, "#38bdf8");
+      eGrad.addColorStop(1, "#0284c7");
+      ctx.fillStyle = eGrad;
+      ctx.beginPath(); ctx.arc(ex, ey, 5, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = "#0f172a"; ctx.font = "bold 8px sans-serif"; ctx.textAlign = "center";
+      ctx.textBaseline = "middle"; ctx.fillText("-", ex, ey);
+      ctx.restore();
+    }
+  }
+
+  function drawIonBracket(cx, cy, radius, charge) {
+    ctx.save();
+    ctx.strokeStyle = charge.includes("+") ? "#f87171" : "#38bdf8";
+    ctx.lineWidth = 2;
+    // قوسين جانبيين كرموز الأيون في الكتاب
+    const offset = radius + 6;
+    ctx.beginPath();
+    ctx.moveTo(cx - offset + 6, cy - radius); ctx.lineTo(cx - offset, cy - radius);
+    ctx.lineTo(cx - offset, cy + radius); ctx.lineTo(cx - offset + 6, cy + radius);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(cx + offset - 6, cy - radius); ctx.lineTo(cx + offset, cy - radius);
+    ctx.lineTo(cx + offset, cy + radius); ctx.lineTo(cx + offset - 6, cy + radius);
+    ctx.stroke();
+
+    // الشحنة المرتفعة أعلى اليمين
+    ctx.fillStyle = charge.includes("+") ? "#f87171" : "#38bdf8";
+    ctx.font = "bold 15px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(charge, cx + offset + 2, cy - radius + 6);
+    ctx.restore();
+  }
+
+  updateUI();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
