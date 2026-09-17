@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>مستكشف الجدول الدوري التفاعلي | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 10px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع والترويسة */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* شريط التبويبات الرئيسي */
+    .main-tabs {
+      display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr; gap: 4px; background: #1e293b;
+      padding: 4px; border-radius: 10px; border: 1px solid #334155;
+    }
+    .main-tab-btn {
+      background: transparent; border: none; color: #94a3b8; padding: 6px 2px;
+      border-radius: 7px; font-size: 11px; font-weight: bold; cursor: pointer;
+      font-family: 'Cairo', sans-serif; transition: all 0.2s; text-align: center;
+    }
+    .main-tab-btn.active { background: #0284c7; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* شريط فلاتر التصنيف المنهجي */
+    .filter-scroll {
+      display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 4px 10px; border-radius: 7px; font-size: 10.5px; font-weight: bold; cursor: pointer;
+    }
+    .filter-chip.active { background: #38bdf8; color: #0b0f19; border-color: #38bdf8; }
+
+    /* منطقة الجدول الدوري المتجاوب */
+    .table-container {
+      background: #111827; border: 1px solid #1f2937; border-radius: 12px;
+      padding: 8px; overflow-x: auto; position: relative;
+    }
+    .periodic-grid {
+      display: grid; grid-template-columns: repeat(18, 28px); gap: 3px; min-width: 560px;
+    }
+    .cell {
+      height: 38px; border-radius: 5px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; cursor: pointer; font-family: monospace;
+      font-size: 10px; font-weight: bold; border: 1px solid transparent; transition: transform 0.1s, box-shadow 0.1s;
+      position: relative;
+    }
+    .cell:active { transform: scale(1.15); z-index: 10; }
+    .cell.selected { border-color: #ffffff !important; box-shadow: 0 0 10px #ffffff; z-index: 5; }
+    
+    /* ألوان الأصناف الثلاثة المنهجية ص 56 */
+    .cell.metal { background: rgba(56, 189, 248, 0.18); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); }
+    .cell.metalloid { background: rgba(16, 185, 129, 0.25); color: #34d399; border-color: rgba(16, 185, 129, 0.5); }
+    .cell.nonmetal { background: rgba(245, 158, 11, 0.22); color: #fbbf24; border-color: rgba(245, 158, 11, 0.45); }
+    .cell.noble { background: rgba(168, 85, 247, 0.22); color: #c084fc; border-color: rgba(168, 85, 247, 0.45); }
+    .cell.dimmed { opacity: 0.18; }
+    .cell.zigzag-border { box-shadow: inset 0 0 0 1.5px #10b981; }
+
+    .cell .z-num { font-size: 7.5px; opacity: 0.8; line-height: 1; }
+    .cell .symbol { font-size: 11px; font-weight: 800; }
+
+    /* بطاقة فحص العنصر المنهجية ص 54 */
+    .element-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+      padding: 10px 14px; display: grid; grid-template-columns: 85px 1fr 110px; gap: 10px; align-items: center;
+    }
+    .card-square {
+      background: #0f172a; border: 2px solid #38bdf8; border-radius: 8px;
+      padding: 6px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; height: 85px;
+    }
+    .card-z { font-size: 11px; font-weight: bold; color: #f87171; text-align: right; }
+    .card-sym { font-size: 22px; font-weight: 800; color: #f8fafc; line-height: 1; }
+    .card-name { font-size: 10px; color: #cbd5e1; font-weight: bold; }
+    .card-mass { font-size: 9.5px; color: #facc15; font-family: monospace; }
+
+    .card-details { display: flex; flex-direction: column; gap: 2px; }
+    .card-badge {
+      display: inline-block; padding: 2px 7px; border-radius: 5px; font-size: 10px; font-weight: 800; width: fit-content;
+    }
+    .card-arabic-name { font-size: 15px; font-weight: 800; color: #f8fafc; }
+    .card-desc-short { font-size: 11px; color: #94a3b8; line-height: 1.4; }
+
+    /* كانفاس مصغر للذرة والمختبر */
+    .mini-canvas-box {
+      width: 100%; height: 90px; background: #0f172a; border-radius: 8px; border: 1px solid #334155;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+
+    /* لوحة طاولة الفحص المخبري التفاعلية */
+    .testing-bench {
+      background: #111827; border: 1px solid #1f2937; border-radius: 12px;
+      padding: 12px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .bench-canvas-wrap {
+      width: 100%; height: 180px; background: #0f172a; border-radius: 8px;
+      display: flex; justify-content: center; position: relative;
+    }
+    .bench-actions {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+    }
+    .bench-btn {
+      background: #1e293b; border: 1px solid #334155; color: #f8fafc;
+      padding: 8px 4px; border-radius: 8px; font-size: 11px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s;
+    }
+    .bench-btn:active { transform: scale(0.95); background: #334155; }
+
+    /* صندوق الشرح المنهجي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 75px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>مستكشف الجدول الدوري التفاعلي</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- التبويبات الأربعة الرئيسية -->
+  <div class="main-tabs">
+    <button class="main-tab-btn active" id="tabExplorer" onclick="setMainMode('explorer')">🗺️ الخريطة والخط</button>
+    <button class="main-tab-btn" id="tabBench" onclick="setMainMode('bench')">🔨 طاولة الفحص</button>
+    <button class="main-tab-btn" id="tabHistory" onclick="setMainMode('history')">⏳ آلة الزمن</button>
+    <button class="main-tab-btn" id="tabQuiz" onclick="setMainMode('quiz')">🎯 كاشف العناصر</button>
+  </div>
+
+  <!-- شريط الفلاتر السريعة -->
+  <div class="filter-scroll" id="filterBar">
+    <button class="filter-chip active" onclick="applyFilter('all')">الكل (118)</button>
+    <button class="filter-chip" onclick="applyFilter('zigzag')">⚡ الخط المتعرج (ص 56)</button>
+    <button class="filter-chip" onclick="applyFilter('metal')">الفلزات (78.8%)</button>
+    <button class="filter-chip" onclick="applyFilter('metalloid')">أشباه الفلزات (6.8%)</button>
+    <button class="filter-chip" onclick="applyFilter('nonmetal')">اللافلزات (14.4%)</button>
+    <button class="filter-chip" onclick="applyFilter('group1')">الفلزات القلوية (IA)</button>
+    <button class="filter-chip" onclick="applyFilter('group2')">القلوية الترابية (IIA)</button>
+    <button class="filter-chip" onclick="applyFilter('halogen')">الهالوجينات (VIIA)</button>
+    <button class="filter-chip" onclick="applyFilter('noble')">الغازات الخاملة (VIIIA)</button>
+  </div>
+
+  <!-- شاشة الجدول الدوري القابلة للتمرير -->
+  <div class="table-container" id="tableContainer">
+    <div class="periodic-grid" id="pGrid"></div>
+  </div>
+
+  <!-- بطاقة العنصر المختار ومجسم مداراته -->
+  <div class="element-card" id="elementCard">
+    <div class="card-square" id="cardSquare">
+      <span class="card-z" id="cardZ">11</span>
+      <span class="card-sym" id="cardSym">Na</span>
+      <span class="card-name" id="cardNameEn">Sodium</span>
+      <span class="card-mass" id="cardMass">22.990</span>
+    </div>
+    <div class="card-details">
+      <span class="card-badge" id="cardBadge" style="background:rgba(56,189,248,0.2); color:#38bdf8;">فلز قلوي نشط</span>
+      <div class="card-arabic-name" id="cardNameAr">الصوديوم (Na)</div>
+      <div class="card-desc-short" id="cardShortDesc">
+        الدورة 3 • الزمرة الأولى (عائلة الليثيوم) • إلكترون تكافؤ واحد.
+      </div>
+    </div>
+    <div class="mini-canvas-box">
+      <canvas id="bohrCanvas" width="110" height="90"></canvas>
+    </div>
+  </div>
+
+  <!-- لوحة طاولة الفحص الميكانيكي والكهربائي (تظهر في وضع الفحص) -->
+  <div class="testing-bench" id="testingBench" style="display: none;">
+    <div class="bench-canvas-wrap">
+      <canvas id="benchCanvas" width="460" height="180"></canvas>
+    </div>
+    <div class="bench-actions">
+      <button class="bench-btn" onclick="testProperty('hammer')">🔨 الطرق بالمطرقة</button>
+      <button class="bench-btn" onclick="testProperty('lamp')">💡 التوصيل الكهربائي</button>
+      <button class="bench-btn" onclick="testProperty('heat')">🌡️ التوصيل الحراري</button>
+    </div>
+  </div>
+
+  <!-- صندوق التفسير العلمي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">استكشاف الجدول الدوري:</div>
+    <div id="infoText">انقر على أي عنصر لمشاهدة مداراته وإجراء تجارب الفحص عليه.</div>
+  </div>
+</div>
+
+<script>
+  // قاعدة بيانات العناصر المنهجية (الدورات 1-4 + نماذج رئيسية)
+  const elements = [
+    { z: 1, s: "H", nAr: "هيدروجين", nEn: "Hydrogen", m: "1.008", p: 1, g: 1, c: "nonmetal", val: 1, desc: "لافلز غازي فريد ينفصل عن باقي العناصر لأن خواصه لا تتلاءم تماماً مع أي زمرة (ص 61)." },
+    { z: 2, s: "He", nAr: "هيليوم", nEn: "Helium", m: "4.003", p: 1, g: 18, c: "noble", val: 2, desc: "ثاني أخف غاز في الكون؛ خامل كيميائياً لاكتمال مداره، وتملأ به المناطيد (ص 66)." },
+    { z: 3, s: "Li", nAr: "ليثيوم", nEn: "Lithium", m: "6.94", p: 2, g: 1, c: "metal", val: 1, desc: "فلز قلوي نشط جداً، يحفظ في الزيوت لكي لا يتفاعل مع الهواء أو الماء (ص 59)." },
+    { z: 4, s: "Be", nAr: "بريليوم", nEn: "Beryllium", m: "9.012", p: 2, g: 2, c: "metal", val: 2, desc: "بداية الفلزات القلوية الترابية في الزمرة الثانية؛ يمتلك إلكترونين في المدار الأخير (ص 59)." },
+    { z: 5, s: "B", nAr: "بورون", nEn: "Boron", m: "10.81", p: 2, g: 13, c: "metalloid", val: 3, desc: "شبه فلز سريع الكسر، يُستخدم في صناعة حامض البوريك كمادة مطهرة (ص 64)." },
+    { z: 6, s: "C", nAr: "كاربون", nEn: "Carbon", m: "12.011", p: 2, g: 14, c: "nonmetal", val: 4, desc: "عنصر لافلزي فريد له صور عدة (فحم، كرافيت، ماس)؛ يدخل في تركيب الكائنات الحية (ص 64)." },
+    { z: 7, s: "N", nAr: "نتروجين", nEn: "Nitrogen", m: "14.007", p: 2, g: 15, c: "nonmetal", val: 5, desc: "لافلز يشكل 78% من الهواء الجوي، تحتاجه الكائنات الحية لتكوين البروتينات (ص 65)." },
+    { z: 8, s: "O", nAr: "أوكسجين", nEn: "Oxygen", m: "15.999", p: 2, g: 16, c: "nonmetal", val: 6, desc: "يشكل 21% من الهواء و60% من كتلة جسم الإنسان؛ ضروري للحياة والاحتراق (ص 65)." },
+    { z: 9, s: "F", nAr: "فلور", nEn: "Fluorine", m: "18.998", p: 2, g: 17, c: "nonmetal", val: 7, desc: "رأس عائلة الهالوجينات المكونة للأملاح؛ أنشط اللافلزات ويميل لاكتساب إلكترون (ص 66)." },
+    { z: 10, s: "Ne", nAr: "نيون", nEn: "Neon", m: "20.180", p: 2, g: 18, c: "noble", val: 8, desc: "غاز خامل مداره الخارجي مكتمل بـ 8 إلكترونات، يُستعمل في صنع مصابيح النيون (ص 66)." },
+    { z: 11, s: "Na", nAr: "صوديوم", nEn: "Sodium", m: "22.990", p: 3, g: 1, c: "metal", val: 1, desc: "فلز قلوي رخو وشديد النشاط، يتحد مع الكلور ليكونا ملح الطعام كلوريد الصوديوم (ص 59)." },
+    { z: 12, s: "Mg", nAr: "مغنيسيوم", nEn: "Magnesium", m: "24.305", p: 3, g: 2, c: "metal", val: 2, desc: "فلز قلوي ترابي، يحترق بوميض أبيض ناصع ويدخل في تكوين السبائك الخفيفة (ص 59)." },
+    { z: 13, s: "Al", nAr: "ألمنيوم", nEn: "Aluminum", m: "26.982", p: 3, g: 13, c: "metal", val: 3, desc: "فلز موصل وفير بالقشرة الأرضية، قابل للطرق لصنع هياكل الطائرات ورقائق الطعام (ص 58)." },
+    { z: 14, s: "Si", nAr: "سيليكون", nEn: "Silicon", m: "28.086", p: 3, g: 14, c: "metalloid", val: 4, desc: "شبه موصل ممتاز يقع على الخط المتعرج، يدخل في صناعة رقائق الحاسوب والخلايا الشمسية (ص 62)." },
+    { z: 15, s: "P", nAr: "فسفور", nEn: "Phosphorus", m: "30.974", p: 3, g: 15, c: "nonmetal", val: 5, desc: "لافلز صلب يدخل في تركيب العظام والأسنان والحامض النووي DNA (ص 65)." },
+    { z: 16, s: "S", nAr: "كبريت", nEn: "Sulfur", m: "32.066", p: 3, g: 16, c: "nonmetal", val: 6, desc: "لافلز صلب أصفر يوجد بوفرة في العراق، يستعمل في صناعة المطاط وحامض الكبريتيك (ص 65)." },
+    { z: 17, s: "Cl", nAr: "كلور", nEn: "Chlorine", m: "35.453", p: 3, g: 17, c: "nonmetal", val: 7, desc: "غاز لافلزي أصفر مخضر من الهالوجينات؛ يتحد مع الفلزات لتكوين الأملاح كملح الطعام (ص 66)." },
+    { z: 18, s: "Ar", nAr: "آرغون", nEn: "Argon", m: "39.948", p: 3, g: 18, c: "noble", val: 8, desc: "غاز نبيل خامل يملأ به مصابيح التوهج لمنع احتراق فتيل التنجستن (ص 66)." },
+    { z: 19, s: "K", nAr: "بوتاسيوم", nEn: "Potassium", m: "39.098", p: 4, g: 1, c: "metal", val: 1, desc: "بداية الدورة الرابعة؛ فلز نشط جداً يتفاعل بشدة مع الماء ويحفظ تحت النفط أو الزيت (ص 63)." },
+    { z: 20, s: "Ca", nAr: "كالسيوم", nEn: "Calcium", m: "40.078", p: 4, g: 2, c: "metal", val: 2, desc: "المكون الأساس لعظامك وأسنانك ويدخل في تركيب الإسمنت والطباشير (ص 59)." },
+    { z: 26, s: "Fe", nAr: "حديد", nEn: "Iron", m: "55.845", p: 4, g: 8, c: "metal", val: 2, desc: "فلز قوي قابل للطرق والسحب والمغنطة؛ عماد البناء وصناعة هياكل السيارات (ص 58)." },
+    { z: 29, s: "Cu", nAr: "نحاس", nEn: "Copper", m: "63.546", p: 4, g: 11, c: "metal", val: 1, desc: "فلز فائق التوصيل للكهرباء والحرارة؛ تصنع منه أسلاك التوصيل والسبائك النقدية (ص 57)." },
+    { z: 30, s: "Zn", nAr: "خارصين", nEn: "Zinc", m: "65.38", p: 4, g: 12, c: "metal", val: 2, desc: "فلز يقاوم الصدأ، يحل محل النحاس في تفاعلات الاستبدال وتغلف به المعادن لحمايتها (ص 75)." },
+    { z: 32, s: "Ge", nAr: "جرمانيوم", nEn: "Germanium", m: "72.63", p: 4, g: 14, c: "metalloid", val: 4, desc: "شبه فلز توقعه مندليف وترك له مكاناً شاغراً واكتشف لاحقاً بخصائص مطابقة تماماً (ص 51)." },
+    { z: 35, s: "Br", nAr: "بروم", nEn: "Bromine", m: "79.904", p: 4, g: 17, c: "nonmetal", val: 7, desc: "اللافلز الوحيد الذي يكون سائلاً في درجة حرارة الغرفة وله لون أحمر مائل للبني (ص 61)." },
+    { z: 36, s: "Kr", nAr: "كربتون", nEn: "Krypton", m: "83.798", p: 4, g: 18, c: "noble", val: 8, desc: "الغاز الخامل الذي يختم الدورة الرابعة؛ مستقر جداً ولا يتفاعل في الظروف العادية (ص 63)." },
+    { z: 80, s: "Hg", nAr: "زئبق", nEn: "Mercury", m: "200.59", p: 6, g: 12, c: "metal", val: 2, desc: "الفلز الوحيد الذي يوجد بالحالة السائلة في درجة حرارة الغرفة (ص 57)." }
+  ];
+
+  // عناصر الخط المتعرج الفاصل ص 56
+  const zigZagSymbols = ["B", "Si", "Ge", "As", "Sb", "Te", "Po"];
+
+  let selectedElement = elements[10]; // Na الافتراضي
+  let currentMode = "explorer";
+  let activeFilter = "all";
+  let benchAnimation = { type: null, progress: 0, active: false };
+
+  // محرك الصوت عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    if (type === "clang") {
+      osc.type = "sine"; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+      g.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    } else if (type === "crunch") {
+      const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.15, audioCtx.sampleRate);
+      const d = buf.getChannelData(0);
+      for(let i=0; i<d.length; i++) d[i] = (Math.random()*2-1)*Math.exp(-i/(d.length*0.2));
+      const src = audioCtx.createBufferSource(); src.buffer = buf;
+      src.connect(audioCtx.destination); src.start();
+    } else if (type === "buzz") {
+      osc.type = "sawtooth"; osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+    } else if (type === "win") {
+      osc.type = "triangle"; osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+      osc.frequency.setValueAtTime(554, audioCtx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.2);
+      g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    }
+  }
+
+  // رسم شبكة الجدول الدوري
+  function renderPeriodicGrid() {
+    const grid = document.getElementById("pGrid");
+    grid.innerHTML = "";
+
+    // بناء مصفوفة فارغة للدورات الـ 4
+    for (let r = 1; r <= 4; r++) {
+      for (let c = 1; c <= 18; c++) {
+        const el = elements.find(item => item.p === r && item.g === c);
+        const cell = document.createElement("div");
+
+        if (el) {
+          cell.className = `cell ${el.c} ${selectedElement.z === el.z ? 'selected' : ''}`;
+          if (zigZagSymbols.includes(el.s)) cell.classList.add("zigzag-border");
+          cell.id = `cell-${el.z}`;
+          cell.innerHTML = `<span class="z-num">${el.z}</span><span class="symbol">${el.s}</span>`;
+          cell.onclick = () => selectElement(el);
+        } else {
+          // خلايا فارغة بين المجموعات
+          cell.style.visibility = "hidden";
+        }
+        grid.appendChild(cell);
+      }
+    }
+  }
+
+  function selectElement(el) {
+    selectedElement = el;
+    document.querySelectorAll(".cell").forEach(c => c.classList.remove("selected"));
+    const activeC = document.getElementById(`cell-${el.z}`);
+    if (activeC) activeC.classList.add("selected");
+
+    updateElementCard();
+    playSound("clang");
+    if (currentMode === "quiz") checkQuizAnswer(el);
+  }
+
+  function updateElementCard() {
+    const el = selectedElement;
+    document.getElementById("cardZ").innerText = el.z;
+    document.getElementById("cardSym").innerText = el.s;
+    document.getElementById("cardNameEn").innerText = el.nEn;
+    document.getElementById("cardMass").innerText = el.m;
+    document.getElementById("cardNameAr").innerText = `${el.nAr} (${el.s})`;
+
+    const badge = document.getElementById("cardBadge");
+    const square = document.getElementById("cardSquare");
+
+    let badgeText = "فلز (Metal)";
+    let badgeCol = "#38bdf8";
+    if (el.c === "metalloid") { badgeText = "شبه فلز (الخط المتعرج)"; badgeCol = "#10b981"; }
+    else if (el.c === "noble") { badgeText = "غاز خامل نبيل (الزمرة 8)"; badgeCol = "#c084fc"; }
+    else if (el.c === "nonmetal") { badgeText = "لافلز (Nonmetal)"; badgeCol = "#f59e0b"; }
+
+    badge.innerText = badgeText;
+    badge.style.color = badgeCol;
+    badge.style.background = `${badgeCol}22`;
+    square.style.borderColor = badgeCol;
+
+    document.getElementById("cardShortDesc").innerText = `الدورة ${el.p} • الزمرة ${el.g} • إلكترونات التكافؤ: ${el.val}`;
+    document.getElementById("infoTitle").innerText = `عنصر ${el.nAr} (${el.s}):`;
+    document.getElementById("infoText").innerHTML = el.desc;
+  }
+
+  // تصفية العناصر وعرض الممالك الثلاث
+  function applyFilter(f) {
+    activeFilter = f;
+    document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+    event.target.classList.add("active");
+
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+
+    document.querySelectorAll(".cell").forEach(cell => {
+      const z = parseInt(cell.id.replace("cell-", ""));
+      const el = elements.find(item => item.z === z);
+      if (!el) return;
+
+      let match = false;
+      if (f === "all") match = true;
+      else if (f === "zigzag") match = zigZagSymbols.includes(el.s);
+      else if (f === "metal") match = el.c === "metal";
+      else if (f === "metalloid") match = el.c === "metalloid";
+      else if (f === "nonmetal") match = el.c === "nonmetal";
+      else if (f === "noble") match = el.c === "noble";
+      else if (f === "group1") match = el.g === 1;
+      else if (f === "group2") match = el.g === 2;
+      else if (f === "halogen") match = el.g === 17;
+
+      if (match) cell.classList.remove("dimmed");
+      else cell.classList.add("dimmed");
+    });
+
+    if (f === "zigzag") {
+      infoTitle.innerText = "الخط المتعرج الفاصل في الجدول الدوري (ص 56):";
+      infoText.innerHTML = "يبدأ الخط من عنصر <b>البورون (B)</b> إلى <b>البولونيوم (Po)</b>؛ يقسم الجدول لمملكتين: <b>مملكة الفلزات الكبرى (يساراً بنسبة 78.8%)</b>، و<b>دولة اللافلزات (يميناً بنسبة 14.4%)</b>، بينما تستقر أشباه الفلزات على الخط بنسبة 6.8%.";
+    }
+  }
+
+  // التبديل بين الأوضاع الأربعة
+  function setMainMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll(".main-tab-btn").forEach(b => b.classList.remove("active"));
+    const activeBtn = document.getElementById(`tab${mode.charAt(0).toUpperCase() + mode.slice(1)}`);
+    if (activeBtn) activeBtn.classList.add("active");
+
+    const tContainer = document.getElementById("tableContainer");
+    const tBench = document.getElementById("testingBench");
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+
+    if (mode === "explorer") {
+      tContainer.style.display = "block";
+      tBench.style.display = "none";
+      updateElementCard();
+    } else if (mode === "bench") {
+      tContainer.style.display = "none";
+      tBench.style.display = "flex";
+      infoTitle.innerText = "طاولة الفحص الميكانيكي والكهربائي:";
+      infoText.innerHTML = `اختر فحصاً لاختبار عينة <b>${selectedElement.nAr}</b> بالمطرقة أو بدارة المصباح أو بالتوصيل الحراري ومقارنة سلوك الفلزات واللافلزات.`;
+    } else if (mode === "history") {
+      tContainer.style.display = "block";
+      tBench.style.display = "none";
+      infoTitle.innerText = "آلة الزمن: جدول مندليف (1869) مقابل موزلي (1913):";
+      infoText.innerHTML = "<b>مندليف:</b> رتب العناصر بحسب ازدياد كتلها الذرية وتوقع العناصر المجهولة (مثل الجرمانيوم ?=72) وترك لها فراغات. <b>موزلي:</b> حدّث الترتيب حسب الأعداد الذرية (Z) لتنتظم الخواص دورياً (ص 51).";
+    } else if (mode === "quiz") {
+      tContainer.style.display = "block";
+      tBench.style.display = "none";
+      startNextQuizMission();
+    }
+  }
+
+  // محاكاة الفحص المخبري (المطرقة، المصباح، التوصيل)
+  function testProperty(type) {
+    benchAnimation = { type: type, progress: 0, active: true };
+    const el = selectedElement;
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+
+    if (type === "hammer") {
+      if (el.c === "metal") {
+        playSound("clang");
+        infoTitle.innerText = `اختبار الطرق: ${el.nAr} فلز قابل للطرق والسحب`;
+        infoText.innerHTML = "<b>لا ينكسر بل يتسطح:</b> ذرات الفلز تنزلق فوق بعضها دون انكسار روابطها، مما يسمح بصنع صفائح ورقائق وأسلاك منها (ص 57).";
+      } else if (el.c === "nonmetal") {
+        playSound("crunch");
+        infoTitle.innerText = `اختبار الطرق: ${el.nAr} لافلز هش وسريع الكسر`;
+        infoText.innerHTML = "<b>تهشم إلى مسحوق:</b> اللافلزات الصلبة (مثل الفحم والكبريت) هشة وغير قابلة للطرق والسحب وتتفتت مباشرة عند ضربها بالمطرقة (ص 61).";
+      } else {
+        playSound("crunch");
+        infoTitle.innerText = `اختبار الطرق: ${el.nAr} شبه فلز صلب`;
+        infoText.innerHTML = "أشباه الفلزات تملك مظهراً براقاً لكنها سريعة الكسر ولا تمتك ليونة الفلزات النقية (ص 62).";
+      }
+    } else if (type === "lamp") {
+      if (el.c === "metal") {
+        playSound("buzz");
+        infoTitle.innerText = `اختبار الكهرباء: ${el.nAr} موصل فائق للكهرباء`;
+        infoText.innerHTML = "<b>المصباح يتوهج بسطوع كامل:</b> تمتلك الفلزات إلكترونات حرة طليقة الحركة في غلافها الخارجي تنقل التيار بكفاءة عالية (ص 57).";
+      } else if (el.c === "metalloid") {
+        playSound("buzz");
+        infoTitle.innerText = `اختبار الكهرباء: ${el.nAr} شبه موصل (Semiconductor)`;
+        infoText.innerHTML = "<b>المصباح يضيء بضعف:</b> توصل الكهرباء بدرجة أقل من الفلزات، وتزداد كفاءتها بالحرارة أو الإشعاع (ص 62).";
+      } else {
+        infoTitle.innerText = `اختبار الكهرباء: ${el.nAr} عازل رديء التوصيل`;
+        infoText.innerHTML = "<b>المصباح مطفأ كلياً:</b> إلكترونات اللافلزات مرتبطة بقوة بالنواة وليست حرة الحركة، مما يجعلها عازلة للكهرباء (ص 61).";
+      }
+    } else if (type === "heat") {
+      playSound("clang");
+      infoTitle.innerText = `اختبار التوصيل الحراري لعنصر ${el.nAr}`;
+      infoText.innerHTML = el.c === "metal" ? "<b>انتقال سريع للحرارة:</b> تصنع منه أواني الطهو لنقله الفائق للطاقة الحرارية (ص 57)." : "<b>رديء التوصيل للحرارة:</b> لا يسخن الطرف الآخر لعزل جزيئاته (ص 61).";
+    }
+  }
+
+  // رسم كانفاس طاولة الفحص
+  const bCanvas = document.getElementById("benchCanvas");
+  const bCtx = bCanvas.getContext("2d");
+
+  function renderBench() {
+    bCtx.clearRect(0, 0, bCanvas.width, bCanvas.height);
+    const el = selectedElement;
+
+    // رسم منصة الفحص الفولاذية
+    bCtx.fillStyle = "#1e293b"; bCtx.strokeStyle = "#475569"; bCtx.lineWidth = 2;
+    bCtx.beginPath(); bCtx.roundRect(140, 110, 180, 50, 8); bCtx.fill(); bCtx.stroke();
+
+    // رسم عينة المادة
+    const isMetal = el.c === "metal";
+    const isNonmetal = el.c === "nonmetal";
+
+    if (benchAnimation.active && benchAnimation.type === "hammer") {
+      benchAnimation.progress += 0.05;
+      const prog = Math.min(1, benchAnimation.progress);
+
+      // رسم المطرقة وهي تهبط
+      const hammerY = 50 + Math.sin(prog * Math.PI) * 55;
+      bCtx.save();
+      bCtx.fillStyle = "#64748b"; bCtx.fillRect(215, hammerY - 30, 10, 30); // المقبض
+      bCtx.fillStyle = "#94a3b8"; bCtx.fillRect(195, hammerY, 50, 20); // رأس المطرقة
+      bCtx.restore();
+
+      // رسم تشكل العينة بالضرب
+      if (isMetal) {
+        // تتسطح كصفيحة
+        const w = 40 + prog * 35;
+        const h = 25 - prog * 15;
+        bCtx.fillStyle = "#38bdf8";
+        bCtx.fillRect(220 - w/2, 110 - h, w, h);
+      } else {
+        // تتكسر لمسحوق
+        bCtx.fillStyle = "#fbbf24";
+        for (let i = 0; i < 15; i++) {
+          let px = 220 + (Math.sin(i * 1.5) * (prog * 30));
+          let py = 108 - (Math.random() * (prog * 15));
+          bCtx.fillRect(px, py, 4, 4);
+        }
+      }
+
+      if (benchAnimation.progress >= 1) benchAnimation.active = false;
+    } else if (benchAnimation.type === "lamp") {
+      // رسم قطبي التوصيل والمصباح
+      bCtx.fillStyle = isMetal ? "#facc15" : (el.c === "metalloid" ? "#eab308" : "#475569");
+      bCtx.beginPath(); bCtx.arc(230, 45, 16, 0, Math.PI * 2); bCtx.fill(); // توهج المصباح
+
+      // سلكان يلمسان العينة
+      bCtx.strokeStyle = "#cbd5e1"; bCtx.lineWidth = 2;
+      bCtx.beginPath(); bCtx.moveTo(170, 60); bCtx.lineTo(205, 100); bCtx.stroke();
+      bCtx.beginPath(); bCtx.moveTo(290, 60); bCtx.lineTo(235, 100); bCtx.stroke();
+
+      // العينة
+      bCtx.fillStyle = isMetal ? "#38bdf8" : (el.c === "metalloid" ? "#10b981" : "#fbbf24");
+      bCtx.fillRect(200, 95, 40, 15);
+    } else {
+      // الحالة الساكنة للعينة
+      bCtx.fillStyle = isMetal ? "#38bdf8" : (el.c === "metalloid" ? "#10b981" : "#fbbf24");
+      bCtx.beginPath(); bCtx.roundRect(200, 90, 40, 20, 4); bCtx.fill();
+      bCtx.fillStyle = "#fff"; bCtx.font = "bold 11px monospace"; bCtx.fillText(el.s, 212, 105);
+    }
+
+    requestAnimationFrame(renderBench);
+  }
+
+  // رسم المدارات الإلكترونية بنموذج بوهر في البطاقة
+  const bohrCanvas = document.getElementById("bohrCanvas");
+  const bohrCtx = bohrCanvas.getContext("2d");
+  let bohrAngle = 0;
+
+  function renderBohrModel() {
+    bohrCtx.clearRect(0, 0, bohrCanvas.width, bohrCanvas.height);
+    const cx = 55, cy = 45;
+    const el = selectedElement;
+
+    bohrAngle += 0.02;
+
+    // النواة
+    bohrCtx.fillStyle = "#ef4444";
+    bohrCtx.beginPath(); bohrCtx.arc(cx, cy, 7, 0, Math.PI * 2); bohrCtx.fill();
+
+    // عدد المدارات بحسب رقم الدورة (ص 52)
+    const shells = el.p;
+    for (let s = 1; s <= shells; s++) {
+      const r = s * 10 + 6;
+      bohrCtx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+      bohrCtx.lineWidth = 1; bohrCtx.setLineDash([2, 2]);
+      bohrCtx.beginPath(); bohrCtx.arc(cx, cy, r, 0, Math.PI * 2); bohrCtx.stroke();
+
+      // إلكترونات المدار الخارجي تبرز أكثر
+      if (s === shells) {
+        for (let i = 0; i < el.val; i++) {
+          const a = bohrAngle + (i * (Math.PI * 2 / el.val));
+          const ex = cx + Math.cos(a) * r;
+          const ey = cy + Math.sin(a) * r;
+          bohrCtx.fillStyle = "#facc15";
+          bohrCtx.beginPath(); bohrCtx.arc(ex, ey, 2.5, 0, Math.PI * 2); bohrCtx.fill();
+        }
+      }
+    }
+    requestAnimationFrame(renderBohrModel);
+  }
+
+  // نظام تحدي كاشف العناصر
+  const quizMissions = [
+    { q: "حدد الفلز الوحيد الذي يوجد بحالة سائلة في درجة حرارة الغرفة؟", target: "Hg" },
+    { q: "حدد اللافلز الوحيد الذي يوجد بحالة سائلة في درجة حرارة الغرفة؟", target: "Br" },
+    { q: "حدد عنصر شبه فلز يُستخدم في صناعة رقائق الحاسوب والخلايا الشمسية؟", target: "Si" },
+    { q: "حدد لافلز يوجد بكثرة في العراق ويستعمل في صناعة المطاط؟", target: "S" },
+    { q: "حدد غاز خامل نبيل خفيف تملأ به المناطيد؟", target: "He" },
+    { q: "حدد فلز قلوي رخو وشديد النشاط يحفظ تحت الزيت ويتحد لتكوين ملح الطعام؟", target: "Na" },
+    { q: "حدد الفلز فائق التوصيل الذي تُصنع منه أغلب الأسلاك الكهربائية؟", target: "Cu" }
+  ];
+  let curQuizIdx = 0;
+
+  function startNextQuizMission() {
+    const q = quizMissions[curQuizIdx];
+    document.getElementById("infoTitle").innerText = `🎯 المهمة (${curQuizIdx + 1}/${quizMissions.length}):`;
+    document.getElementById("infoText").innerHTML = `<b>${q.q}</b><br><span style="color:#f59e0b;">انقر على العنصر المطابق في الجدول الدوري أعلاه!</span>`;
+  }
+
+  function checkQuizAnswer(el) {
+    const q = quizMissions[curQuizIdx];
+    if (el.s === q.target) {
+      playSound("win");
+      alert(`إجابة صحيحة وممتازة! 🎉 العنصر هو ${el.nAr} (${el.s})`);
+      curQuizIdx = (curQuizIdx + 1) % quizMissions.length;
+      startNextQuizMission();
+    }
+  }
+
+  // تشغيل المحاكاة
+  renderPeriodicGrid();
+  updateElementCard();
+  requestAnimationFrame(renderBohrModel);
+  requestAnimationFrame(renderBench);
+</script>
+</body>
+</html>
