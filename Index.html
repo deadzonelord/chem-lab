@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>مختبر الكيمياء التفاعلي | أ. حسين التميمي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #131b2e;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --tag-ready: #10b981;
+      --tag-soon: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 40px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* رأس الصفحة وهوية الأستاذ */
+    .header-card {
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .badge-grade {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      border-radius: 99px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .teacher-badge {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 14.5px;
+      color: #cbd5e1;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .teacher-name {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    /* قائمة المحاكيات */
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--card-border);
+    }
+
+    .modules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sim-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s;
+      position: relative;
+    }
+
+    .sim-card.active:active {
+      transform: scale(0.98);
+      border-color: var(--accent);
+      background: #17223b;
+    }
+
+    .sim-card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .sim-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-width: 75%;
+    }
+
+    .sim-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .tag-active {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--tag-ready);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .tag-upcoming {
+      background: rgba(100, 116, 139, 0.15);
+      color: var(--tag-soon);
+      border: 1px solid rgba(100, 116, 139, 0.2);
+    }
+
+    .sim-title {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .sim-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .sim-btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 1px solid var(--card-border);
+      flex-shrink: 0;
+    }
+
+    .active .sim-btn-icon {
+      background: var(--accent);
+      color: #0b0f19;
+      border-color: var(--accent);
+    }
+
+    /* التذييل */
+    .footer {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 12px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- الترويسة -->
+  <div class="header-card">
+    <div class="badge-grade">🧪 وزارة التربية العراقية • الأول متوسط</div>
+    <h1 class="title">المختبر الكيميائي التفاعلي</h1>
+    <div class="teacher-badge">
+      إعداد وإشراف: <span class="teacher-name">الأستاذ حسين التميمي</span>
+    </div>
+  </div>
+
+  <!-- قسم التجارب -->
+  <div class="section-title">التجارب والمحاكيات المتاحة</div>
+
+  <div class="modules-list">
+    <!-- التجربة 1: جاهزة -->
+    <a href="matter.html" class="sim-card active">
+      <div class="sim-info">
+        <span class="sim-tag tag-active">🟢 جاهزة للتجربة</span>
+        <div class="sim-title">حالات المادة والديناميكا الحرارية</div>
+        <div class="sim-desc">سلوك الجزيئات (الصلبة، السائلة، الغازية) والاهتزاز وقوى التجاذب عند التسخين.</div>
+      </div>
+      <div class="sim-btn-icon">◀</div>
+    </a>
+
+    <!-- التجارب القادمة بالترتيب المنهجي -->
+    <div class="sim-card disabled">
+      <div class="sim-info">
+        <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+        <div class="sim-title">ميزان موازنة المعادلات الكيميائية</div>
+        <div class="sim-desc">الميزان ذو الكفتين لحفظ الذرات وموازنة المواد المتفاعلة والناتجة.</div>
+      </div>
+      <div class="sim-btn-icon">🔒</div>
+    </div>
+
+    <div class="sim-card disabled">
+      <div class="sim-info">
+        <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+        <div class="sim-title">بناء الذرة والتوزيع الإلكتروني</div>
+        <div class="sim-desc">ملء المدارات (1، 2، 3) واستنتاج العدد الذري والكتلي.</div>
+      </div>
+      <div class="sim-btn-icon">🔒</div>
+    </div>
+
+    <div class="sim-card disabled">
+      <div class="sim-info">
+        <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+        <div class="sim-title">كاشف الروابط والتوصيل الكهربائي</div>
+        <div class="sim-desc">مقارنة التوصيل الكهربائي لمركبات الملح الأيونية والسكر التساهمية.</div>
+      </div>
+      <div class="sim-btn-icon">🔒</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    تم تطوير المنصة بأحدث معايير الويب التفاعلية لخدمة طلبتنا الأعزاء.
+  </div>
+</div>
+
+</body>
+</html>

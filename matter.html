@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>محاكاة حالات المادة والتسخين</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      margin: 0;
+      padding: 12px;
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .header {
+      text-align: center;
+      margin-top: 4px;
+    }
+    .header h1 {
+      font-size: 19px;
+      margin: 0;
+      color: #38bdf8;
+    }
+    .header p {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 3px 0 0 0;
+    }
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      background: #111827;
+      border-radius: 14px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .controls-panel {
+      width: 100%;
+      background: #1e293b;
+      padding: 14px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border: 1px solid #334155;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .temp-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: #fbbf24;
+      direction: ltr;
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #38bdf8, #10b981, #f59e0b, #ef4444);
+      outline: none;
+      margin: 6px 0;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #f8fafc;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(0,0,0,0.6);
+      border: 2px solid #0284c7;
+    }
+    .preset-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    button {
+      background: #334155;
+      color: #f1f5f9;
+      border: 1px solid #475569;
+      padding: 8px 0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    button:active {
+      transform: scale(0.96);
+    }
+    button.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #ffffff;
+    }
+    .info-card {
+      width: 100%;
+      background: #0f172a;
+      border-right: 4px solid #38bdf8;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      line-height: 1.6;
+      min-height: 80px;
+    }
+    .info-title {
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 3px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>محاكاة الديناميكا الحرارية للمادة</h1>
+    <p>تأثير الطاقة الحركية وقوى التجاذب الجزيئية عند التسخين</p>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="simCanvas" width="400" height="370"></canvas>
+  </div>
+
+  <div class="controls-panel">
+    <div class="slider-header">
+      <span>مستوى التسخين (الحرارة):</span>
+      <span class="temp-value" id="tempDisplay">-30 °C | 243 K</span>
+    </div>
+    
+    <input type="range" id="tempSlider" min="-50" max="150" value="-30" step="1">
+
+    <div class="preset-buttons">
+      <button id="btnSolid" onclick="setPreset(-30)">صلبة (ثلج)</button>
+      <button id="btnLiquid" onclick="setPreset(45)">سائلة (ماء)</button>
+      <button id="btnGas" onclick="setPreset(125)">غازية (بخار)</button>
+    </div>
+  </div>
+
+  <div class="info-card" id="infoCard">
+    <div class="info-title" id="infoTitle">الحالة الصلبة (Solid State)</div>
+    <div id="infoText">جاري تحميل البيانات الفيزيائية...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const slider = document.getElementById("tempSlider");
+  const tempDisplay = document.getElementById("tempDisplay");
+  const infoTitle = document.getElementById("infoTitle");
+  const infoText = document.getElementById("infoText");
+
+  // حدود وعاء المادة (Container Boundaries)
+  const box = {
+    x: 45,
+    y: 35,
+    width: 310,
+    height: 250,
+    bottom: 285
+  };
+
+  // إعداد الجزيئات
+  const PARTICLE_COUNT = 45;
+  const PARTICLE_RADIUS = 9.5;
+  const particles = [];
+
+  // شبكة الحالة الصلبة (Lattice Sites)
+  const COLS = 9;
+  const ROWS = 5;
+  const spacingX = 26;
+  const spacingY = 24;
+  const latticeStartX = box.x + (box.width - (COLS - 1) * spacingX) / 2;
+  const latticeStartY = box.bottom - (ROWS - 1) * spacingY - 14;
+
+  let currentTemp = parseFloat(slider.value);
+
+  // توليد الجزيئات ومواقعها الأصلية
+  let idx = 0;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (idx < PARTICLE_COUNT) {
+        const lx = latticeStartX + c * spacingX;
+        const ly = latticeStartY + r * spacingY;
+        particles.push({
+          x: lx,
+          y: ly,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          lx: lx,
+          ly: ly,
+          phase: Math.random() * Math.PI * 2
+        });
+        idx++;
+      }
+    }
+  }
+
+  function setPreset(t) {
+    slider.value = t;
+    updateState();
+  }
+
+  function updateState() {
+    currentTemp = parseFloat(slider.value);
+    const kelvin = Math.round(currentTemp + 273.15);
+    tempDisplay.textContent = `${currentTemp >= 0 ? '+' : ''}${currentTemp} °C | ${kelvin} K`;
+
+    // تحديث الأزرار
+    document.getElementById("btnSolid").className = currentTemp < 0 ? "active" : "";
+    document.getElementById("btnLiquid").className = (currentTemp >= 0 && currentTemp < 100) ? "active" : "";
+    document.getElementById("btnGas").className = currentTemp >= 100 ? "active" : "";
+
+    // تحديث الشرح العلمي
+    if (currentTemp < 0) {
+      infoTitle.textContent = "الحالة الصلبة (Solid Phase)";
+      infoTitle.style.color = "#38bdf8";
+      infoText.innerHTML = "<b>قوى التماسك الجزيئي تتفوق تماماً على الطاقة الحركية:</b> الجزيئات مقيدة داخل شبكة بلورية منتظمة وتتحرك فقط عبر اهتزاز موضعي متوافق. الشكل ثابت والحجم ثابت.";
+    } else if (currentTemp < 100) {
+      infoTitle.textContent = "الحالة السائلة (Liquid Phase)";
+      infoTitle.style.color = "#34d399";
+      infoText.innerHTML = "<b>توازن ديناميكي بين الطاقة الحركية وقوى التماسك:</b> الحرارة كسرت النظام البلوري. الجزيئات تتزحلق وتتدفق فوق بعضها بتماس مستمر في قاع الإناء. الحجم ثابت لكن الشكل متغير.";
+    } else {
+      infoTitle.textContent = "الحالة الغازية (Gas Phase)";
+      infoTitle.style.color = "#f87171";
+      infoText.innerHTML = "<b>الطاقة الحركية تكتسح قوى التجاذب بالكامل:</b> انعدام التجاذب بين الجزيئات؛ تتحرك بسرعات متجهة هائلة في كامل فراغ الوعاء وتصطدم بالجدران لتوليد الضغط. لا شكل ثابت ولا حجم ثابت.";
+    }
+  }
+
+  slider.addEventListener("input", updateState);
+  updateState();
+
+  // محاكاة الفيزياء والتحديث الحركي
+  function updatePhysics() {
+    const isSolid = currentTemp < 0;
+    const isLiquid = currentTemp >= 0 && currentTemp < 100;
+    const isGas = currentTemp >= 100;
+
+    // مقياس السرعة الحركية المستهدفة بناء على الجذر التربيعي لدرجة الحرارة المطلقة (v_rms ~ sqrt(T))
+    const kelvin = currentTemp + 273.15;
+    const targetSpeed = Math.sqrt(kelvin) * 0.28;
+
+    particles.forEach((p, i) => {
+      if (isSolid) {
+        // جذب متوافق نحو مواضع الشبكة البلورية + اهتزاز حراري
+        const vibAmp = Math.max(0.6, (currentTemp + 50) / 10);
+        p.phase += 0.25 + (currentTemp + 50) * 0.005;
+        const targetX = p.lx + Math.sin(p.phase) * vibAmp;
+        const targetY = p.ly + Math.cos(p.phase * 1.3) * vibAmp;
+
+        p.x += (targetX - p.x) * 0.25;
+        p.y += (targetY - p.y) * 0.25;
+        p.vx = 0;
+        p.vy = 0;
+      } 
+      else if (isLiquid) {
+        // الجاذبية تبقي السائل أسفل الوعاء مع حركة انسيابية وتدفق
+        p.vy += 0.16; // جاذبية أرضية
+        
+        // تصادم مع قاع وجوانب وسقف مستوى السائل
+        const liquidTop = box.bottom - 110 - (currentTemp * 0.35); // تمدد حراري بسيط
+        if (p.y < liquidTop) { p.y = liquidTop; p.vy *= -0.5; }
+
+        // إضافة تشويش حراري عشوائي (Brownian impulses)
+        p.vx += (Math.random() - 0.5) * targetSpeed * 0.45;
+        p.vy += (Math.random() - 0.5) * targetSpeed * 0.45;
+
+        // ضبط السرعة باللزوجة
+        p.vx *= 0.93;
+        p.vy *= 0.93;
+
+        p.x += p.vx;
+        p.y += p.vy;
+      } 
+      else {
+        // الحالة الغازية: الجاذبية مهملة، الجزيئات تنتشر في كامل الحجم
+        // تسارع حراري
+        const currentSpeed = Math.hypot(p.vx, p.vy) || 0.1;
+        p.vx = (p.vx / currentSpeed) * targetSpeed + (Math.random() - 0.5) * 0.4;
+        p.vy = (p.vy / currentSpeed) * targetSpeed + (Math.random() - 0.5) * 0.4;
+
+        p.x += p.vx;
+        p.y += p.vy;
+      }
+
+      // حدود جدران الإناء
+      const minX = box.x + PARTICLE_RADIUS + 4;
+      const maxX = box.x + box.width - PARTICLE_RADIUS - 4;
+      const minY = isGas ? box.y + PARTICLE_RADIUS + 4 : box.y;
+      const maxY = box.bottom - PARTICLE_RADIUS - 2;
+
+      if (p.x < minX) { p.x = minX; p.vx = Math.abs(p.vx); }
+      if (p.x > maxX) { p.x = maxX; p.vx = -Math.abs(p.vx); }
+      if (p.y > maxY) { p.y = maxY; p.vy = -Math.abs(p.vy) * 0.8; }
+      if (isGas && p.y < minY) { p.y = minY; p.vy = Math.abs(p.vy); }
+
+      // تصادم الجزيئات البينية (Soft Elastic Repulsion) في السائل والغاز
+      if (!isSolid) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p2.x - p.x;
+          const dy = p2.y - p.y;
+          const dist = Math.hypot(dx, dy);
+          const minDist = PARTICLE_RADIUS * 2;
+
+          if (dist < minDist && dist > 0) {
+            const overlap = (minDist - dist) / 2;
+            const nx = dx / dist;
+            const ny = dy / dist;
+
+            p.x -= nx * overlap * 0.6;
+            p.y -= ny * overlap * 0.6;
+            p2.x += nx * overlap * 0.6;
+            p2.y += ny * overlap * 0.6;
+
+            if (isGas) {
+              const kx = p.vx - p2.vx;
+              const ky = p.vy - p2.vy;
+              const p_val = 2 * (nx * kx + ny * ky) / 2;
+              p.vx -= p_val * nx;
+              p.vy -= p_val * ny;
+              p2.vx += p_val * nx;
+              p2.vy += p_val * ny;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // رسم المشهد
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. رسم الإناء الزجاجي المحكم (Beaker / Vessel)
+    ctx.save();
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+    // غطاء الإناء المحكم
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(box.x - 6, box.y - 6, box.width + 12, 10);
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(box.x + box.width / 2 - 15, box.y - 14, 30, 8);
+
+    // زجاج الإناء (انعكاس وتظليل خفيف)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+    ctx.fillRect(box.x, box.y, box.width, box.height);
+    ctx.restore();
+
+    // 2. رسم الروابط الجزيئية البلورية (في الحالة الصلبة فقط)
+    if (currentTemp < 0) {
+      ctx.save();
+      const bondAlpha = Math.max(0.1, Math.min(0.65, (-currentTemp) / 50));
+      ctx.strokeStyle = `rgba(56, 189, 248, ${bondAlpha})`;
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const d = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+          if (d < spacingX * 1.35) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    // 3. رسم الجزيئات (Particles)
+    // التدرج اللوني للجزيء يتغير حسب الحرارة
+    let pColor1 = "#38bdf8", pColor2 = "#0284c7"; // بارد جداً (ثلج)
+    if (currentTemp >= 0 && currentTemp < 100) {
+      pColor1 = "#34d399"; pColor2 = "#059669"; // ماء سائل
+    } else if (currentTemp >= 100) {
+      pColor1 = "#f87171"; pColor2 = "#dc2626"; // بخار ساخن
+    }
+
+    particles.forEach(p => {
+      ctx.save();
+      const grad = ctx.createRadialGradient(
+        p.x - 3, p.y - 3, 2,
+        p.x, p.y, PARTICLE_RADIUS
+      );
+      grad.addColorStop(0, "#ffffff");
+      grad.addColorStop(0.3, pColor1);
+      grad.addColorStop(1, pColor2);
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, PARTICLE_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.shadowColor = pColor1;
+      ctx.shadowBlur = currentTemp > 80 ? 8 : 2;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // 4. رسم موقد التسخين بالأسفل (Burner / Flame Animation)
+    renderHeater();
+
+    requestAnimationFrame(loop);
+  }
+
+  let flameTick = 0;
+  function renderHeater() {
+    const heaterY = box.bottom + 22;
+    const centerX = box.x + box.width / 2;
+
+    // قاعدة الموقد
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(centerX - 40, heaterY + 22, 80, 8);
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(centerX - 16, heaterY + 10, 32, 12);
+
+    if (currentTemp > -10) {
+      flameTick += 0.2;
+      const intensity = Math.min(1, (currentTemp + 10) / 140);
+      const flameHeight = 10 + intensity * 26 + Math.sin(flameTick * 3) * 3;
+      const flameWidth = 12 + intensity * 24;
+
+      ctx.save();
+      // لهب خارجي برتقالي/أحمر
+      ctx.beginPath();
+      ctx.moveTo(centerX - flameWidth / 2, heaterY + 10);
+      ctx.quadraticCurveTo(centerX, heaterY + 10 - flameHeight, centerX + flameWidth / 2, heaterY + 10);
+      ctx.fillStyle = currentTemp > 90 ? "#ef4444" : "#f59e0b";
+      ctx.shadowColor = "#f97316";
+      ctx.shadowBlur = 12 * intensity;
+      ctx.fill();
+
+      // قلب اللهب أزرق/أصفر مشع
+      ctx.beginPath();
+      ctx.moveTo(centerX - flameWidth / 4, heaterY + 10);
+      ctx.quadraticCurveTo(centerX, heaterY + 10 - (flameHeight * 0.55), centerX + flameWidth / 4, heaterY + 10);
+      ctx.fillStyle = currentTemp > 90 ? "#fbbf24" : "#38bdf8";
+      ctx.fill();
+      ctx.restore();
+    } else {
+      // مؤشر التجمد (بلورات برودة)
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("❄ تبريد فائق ❄", centerX, heaterY + 14);
+    }
+  }
+
+  function loop() {
+    updatePhysics();
+    render();
+  }
+
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
