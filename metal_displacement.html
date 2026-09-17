@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>محاكي تفاعلات الاستبدال وتآكل الفلزات | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 10px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع والترويسة */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* التبويبان الرئيسيان */
+    .main-tabs {
+      display: grid; grid-template-columns: 1.2fr 1fr; gap: 6px; background: #1e293b;
+      padding: 4px; border-radius: 10px; border: 1px solid #334155;
+    }
+    .main-tab-btn {
+      background: transparent; border: none; color: #94a3b8; padding: 7px 4px;
+      border-radius: 7px; font-size: 12px; font-weight: bold; cursor: pointer;
+      font-family: 'Cairo', sans-serif; transition: all 0.2s; text-align: center;
+    }
+    .main-tab-btn.active { background: #0284c7; color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* مسرح الكانفاس */
+    .stage-wrapper {
+      position: relative; width: 100%; height: 230px; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex;
+      justify-content: center; align-items: center; overflow: hidden;
+    }
+    canvas { display: block; width: 100%; max-width: 500px; height: 100%; }
+
+    /* لوحة تحديد الفلز والمحلول */
+    .matrix-panel {
+      background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+      padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .select-row {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .row-title { font-size: 11px; font-weight: 700; color: #94a3b8; }
+    .btn-scroll {
+      display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+    }
+    .btn-scroll::-webkit-scrollbar { display: none; }
+    .opt-chip {
+      flex: 0 0 auto; background: #0f172a; border: 1px solid #334155; color: #cbd5e1;
+      padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: bold; cursor: pointer;
+    }
+    .opt-chip.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+    .opt-chip.metal-chip.active { background: #f59e0b; border-color: #fbbf24; color: #0b0f19; }
+
+    /* شريط المعادلة وسلسلة النشاط */
+    .equation-bar {
+      background: #0f172a; border: 1px solid #334155; border-radius: 8px;
+      padding: 8px; text-align: center; font-size: 13px; font-weight: 800;
+      color: #facc15; font-family: monospace; direction: ltr;
+    }
+    .series-ladder {
+      display: flex; justify-content: space-between; align-items: center; background: #1e293b;
+      padding: 6px 12px; border-radius: 8px; border: 1px solid #334155; font-size: 11px; font-weight: bold;
+    }
+    .ladder-item { padding: 2px 6px; border-radius: 4px; color: #94a3b8; }
+    .ladder-item.metal-active { background: #f59e0b; color: #000; }
+    .ladder-item.solution-active { background: #38bdf8; color: #000; }
+
+    /* أزرار الإجراءات */
+    .action-row { display: flex; gap: 8px; }
+    .act-btn {
+      flex: 1; background: #10b981; color: white; border: 1px solid #34d399;
+      padding: 9px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; text-align: center;
+    }
+    .act-btn:active { transform: scale(0.96); }
+    .act-btn.reset { background: #334155; border-color: #475569; color: #f1f5f9; flex: 0.4; }
+
+    /* صندوق الشرح العلمي المنهجي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 75px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+
+    /* واجهة مختبر تآكل الفلزات */
+    .corrosion-view {
+      display: none; background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+      padding: 10px 12px; flex-direction: column; gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>محاكي تفاعلات الاستبدال وتآكل الفلزات</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- التبويبان الرئيسيان -->
+  <div class="main-tabs">
+    <button class="main-tab-btn active" id="btnTabDisp" onclick="switchMainTab('disp')">⚗️ مصفوفة الاستبدال الكيميائي</button>
+    <button class="main-tab-btn" id="btnTabCorrosion" onclick="switchMainTab('corrosion')">🛡️ مختبر تآكل وحماية الفلزات</button>
+  </div>
+
+  <!-- سلم سلسلة النشاط الكيميائي -->
+  <div class="series-ladder" id="seriesLadder">
+    <span style="color:#facc15;">الأنشط كيميائياً ⬅</span>
+    <span class="ladder-item" id="lead-Mg">Mg</span>
+    <span>></span>
+    <span class="ladder-item" id="lead-Zn">Zn</span>
+    <span>></span>
+    <span class="ladder-item" id="lead-Fe">Fe</span>
+    <span>></span>
+    <span class="ladder-item" id="lead-H">H</span>
+    <span>></span>
+    <span class="ladder-item" id="lead-Cu">Cu</span>
+    <span>></span>
+    <span class="ladder-item" id="lead-Ag">Ag</span>
+    <span style="color:#64748b;">الأضعف</span>
+  </div>
+
+  <!-- مسرح الكانفاس الرئيسي -->
+  <div class="stage-wrapper">
+    <canvas id="simCanvas" width="500" height="230"></canvas>
+  </div>
+
+  <!-- معادلة التفاعل اللحظية -->
+  <div class="equation-bar" id="eqBar">Zn + CuSO₄ ➔ ZnSO₄ + Cu</div>
+
+  <!-- 1. لوحة تفاعلات الاستبدال والمصفوفة -->
+  <div class="matrix-panel" id="dispPanel">
+    <!-- صف الفلزات الصلبة -->
+    <div class="select-row">
+      <div class="row-title">1. اختر الفلز الصلب (المُهاجِم):</div>
+      <div class="btn-scroll" id="metalsRow"></div>
+    </div>
+
+    <!-- صف المحاليل الملحية -->
+    <div class="select-row">
+      <div class="row-title">2. اختر المحلول المائي في الكأس:</div>
+      <div class="btn-scroll" id="solutionsRow"></div>
+    </div>
+
+    <div class="action-row">
+      <button class="act-btn" id="btnAction" onclick="startDisplacement()">💧 غمر صفيحة الفلز وبدء التفاعل</button>
+      <button class="act-btn reset" onclick="resetSim()">🔄 تفريغ الكأس</button>
+    </div>
+  </div>
+
+  <!-- 2. لوحة مختبر التآكل والحماية -->
+  <div class="corrosion-view" id="corrosionPanel">
+    <div class="select-row">
+      <div class="row-title">اختر نوع الفلز لاختبار سلوكه مع الرطوبة والأوكسجين:</div>
+      <div class="action-row">
+        <button class="act-btn active" id="btnRustFe" onclick="setCorrosionTarget('Fe')">🔩 تآكل وصدأ الحديد (Fe)</button>
+        <button class="act-btn" id="btnPassAl" onclick="setCorrosionTarget('Al')">🛡️ حماية الألمنيوم الذاتية (Al)</button>
+      </div>
+    </div>
+    <div class="action-row">
+      <button class="act-btn" onclick="startCorrosionSim()">⏳ محاكاة مرور الوقت والرطوبة</button>
+      <button class="act-btn reset" onclick="resetCorrosionSim()">🔄 تنظيف الفلز</button>
+    </div>
+  </div>
+
+  <!-- صندوق التفسير العلمي المنهجي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">مفهوم تفاعل الاستبدال الأحادي (ص 73):</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // سلسلة النشاط الكيميائي وقوتها النسبية
+  // Mg(5) > Zn(4) > Fe(3) > H(2) > Cu(1) > Ag(0)
+  const METALS = [
+    { id: "Zn", name: "خارصين (زنك)", color: "#94a3b8", rank: 4 },
+    { id: "Mg", name: "مغنيسيوم", color: "#e2e8f0", rank: 5 },
+    { id: "Fe", name: "حديد", color: "#64748b", rank: 3 },
+    { id: "Cu", name: "نحاس", color: "#f97316", rank: 1 },
+    { id: "Ag", name: "فضة", color: "#f1f5f9", rank: 0 }
+  ];
+
+  const SOLUTIONS = [
+    { id: "CuSO4", name: "كبريتات النحاس (CuSO₄)", cation: "Cu", cationRank: 1, initColor: "rgba(56, 189, 248, 0.45)", finalColor: "rgba(224, 242, 254, 0.15)" },
+    { id: "AgNO3", name: "نترات الفضة (AgNO₃)", cation: "Ag", cationRank: 0, initColor: "rgba(241, 245, 249, 0.2)", finalColor: "rgba(56, 189, 248, 0.35)" },
+    { id: "ZnSO4", name: "كبريتات الخارصين (ZnSO₄)", cation: "Zn", cationRank: 4, initColor: "rgba(241, 245, 249, 0.15)", finalColor: "rgba(241, 245, 249, 0.15)" },
+    { id: "FeSO4", name: "كبريتات الحديد (FeSO₄)", cation: "Fe", cationRank: 3, initColor: "rgba(52, 211, 153, 0.3)", finalColor: "rgba(241, 245, 249, 0.15)" },
+    { id: "HCl", name: "حمض الهيدروكلوريك (HCl)", cation: "H", cationRank: 2, initColor: "rgba(241, 245, 249, 0.15)", finalColor: "rgba(241, 245, 249, 0.15)" }
+  ];
+
+  let selectedMetal = METALS[0];      // Zn
+  let selectedSol = SOLUTIONS[0];    // CuSO4
+  let currentMainTab = "disp";
+  let isReacting = false;
+  let progress = 0; // 0 to 1
+  let bubbles = [];
+
+  // بيانات وضع تآكل الفلزات
+  let corrosionTarget = "Fe";
+  let corrosionProgress = 0;
+  let isCorroding = false;
+
+  // محرك الأصوات الفيزيائية عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+
+    if (type === "fizz") {
+      const dur = 0.4;
+      const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.3));
+      const src = audioCtx.createBufferSource(); src.buffer = buf;
+      const filt = audioCtx.createBiquadFilter(); filt.type = "highpass"; filt.frequency.value = 1400;
+      src.connect(filt); filt.connect(audioCtx.destination); src.start();
+    } else if (type === "clang") {
+      osc.type = "sine"; osc.frequency.setValueAtTime(540, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.2);
+      g.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    } else if (type === "buzzer") {
+      osc.type = "sawtooth"; osc.frequency.setValueAtTime(130, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+    }
+  }
+
+  // بناء أزرار الفلزات والمحاليل
+  function buildSelectors() {
+    const mRow = document.getElementById("metalsRow");
+    mRow.innerHTML = "";
+    METALS.forEach((m, idx) => {
+      const chip = document.createElement("button");
+      chip.className = `opt-chip metal-chip ${idx === 0 ? 'active' : ''}`;
+      chip.innerText = `${m.name} (${m.id})`;
+      chip.onclick = () => selectMetal(m, chip);
+      mRow.appendChild(chip);
+    });
+
+    const sRow = document.getElementById("solutionsRow");
+    sRow.innerHTML = "";
+    SOLUTIONS.forEach((s, idx) => {
+      const chip = document.createElement("button");
+      chip.className = `opt-chip ${idx === 0 ? 'active' : ''}`;
+      chip.innerText = s.name;
+      chip.onclick = () => selectSolution(s, chip);
+      sRow.appendChild(chip);
+    });
+  }
+
+  function selectMetal(m, chip) {
+    selectedMetal = m;
+    document.querySelectorAll(".metal-chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    playSound("clang");
+    resetSim();
+  }
+
+  function selectSolution(s, chip) {
+    selectedSol = s;
+    document.querySelectorAll("#solutionsRow .opt-chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    playSound("clang");
+    resetSim();
+  }
+
+  function switchMainTab(tab) {
+    currentMainTab = tab;
+    document.getElementById("btnTabDisp").className = tab === "disp" ? "main-tab-btn active" : "main-tab-btn";
+    document.getElementById("btnTabCorrosion").className = tab === "corrosion" ? "main-tab-btn active" : "main-tab-btn";
+
+    document.getElementById("dispPanel").style.display = tab === "disp" ? "flex" : "none";
+    document.getElementById("corrosionPanel").style.display = tab === "corrosion" ? "flex" : "none";
+    document.getElementById("seriesLadder").style.display = tab === "disp" ? "flex" : "none";
+    document.getElementById("eqBar").style.display = tab === "disp" ? "block" : "none";
+
+    playSound("clang");
+    if (tab === "disp") resetSim(); else resetCorrosionSim();
+  }
+
+  // فحص هل يحدث التفاعل وفق سلسلة النشاط
+  function checkReactionPossibility() {
+    return selectedMetal.rank > selectedSol.cationRank;
+  }
+
+  function startDisplacement() {
+    if (isReacting || progress >= 1) return;
+    const canReact = checkReactionPossibility();
+
+    isReacting = true;
+    if (canReact) {
+      playSound(selectedSol.id === "HCl" ? "fizz" : "clang");
+    } else {
+      playSound("buzzer");
+    }
+  }
+
+  function resetSim() {
+    isReacting = false;
+    progress = 0;
+    bubbles = [];
+    updateLadderHighlights();
+    updateEquationAndInfo();
+  }
+
+  function updateLadderHighlights() {
+    document.querySelectorAll(".ladder-item").forEach(item => {
+      item.className = "ladder-item";
+    });
+    const mItem = document.getElementById(`lead-${selectedMetal.id}`);
+    if (mItem) mItem.classList.add("metal-active");
+
+    const sItem = document.getElementById(`lead-${selectedSol.cation}`);
+    if (sItem) sItem.classList.add("solution-active");
+  }
+
+  function updateEquationAndInfo() {
+    const eqBar = document.getElementById("eqBar");
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+    const canReact = checkReactionPossibility();
+
+    const m = selectedMetal.id;
+    const s = selectedSol.id;
+
+    if (!canReact) {
+      eqBar.innerText = `${m} + ${s} ➔ لا يحدث تفاعل (No Reaction)`;
+      eqBar.style.color = "#f87171";
+      infoTitle.innerText = `حالة عدم حدوث التفاعل:`;
+      infoTitle.style.color = "#f87171";
+      infoText.innerHTML = `
+        <b>فلز ${selectedMetal.name} أضعف نشاطاً من ${selectedSol.cation}:</b><br>
+        يقع فلز (${m}) في مستوى أدنى من (${selectedSol.cation}) في سلسلة النشاط الكيميائي، فلا يمتلك طاقة كافية لانتزاع الشق السالب وطرده من المحلول، فيبقى الكأس ساكناً.
+      `;
+      return;
+    }
+
+    eqBar.style.color = "#facc15";
+
+    // صياغة المعادلة بحسب نوع التفاعل
+    if (s === "CuSO4") {
+      eqBar.innerText = `${m} + CuSO₄ ➔ ${m}SO₄ + Cu ↓`;
+      infoTitle.innerText = `تفاعل استبدال النحاس بـ ${selectedMetal.name}:`;
+      infoTitle.style.color = "#10b981";
+      infoText.innerHTML = `
+        <b>الفلز الأنشط يطرد الأقل نشاطاً:</b> يحل (${m}) محل النحاس في مركبه؛ فيزول اللون الأزرق للمحلول تدريجياً، وتتآكل الصفيحة لتُكسى بطبقة إسفنجية حمراء من ذرات النحاس المترسبة (ص 73).
+      `;
+    } else if (s === "AgNO3") {
+      eqBar.innerText = `${m} + 2AgNO₃ ➔ ${m}(NO₃)₂ + 2Ag ↓`;
+      infoTitle.innerText = `تفاعل تكوين شجرة بلورات الفضة:`;
+      infoTitle.style.color = "#38bdf8";
+      infoText.innerHTML = `
+        يحل (${m}) محل أيونات الفضة؛ فتتحرر ذرات الفضة النقية وتنمو على الصفيحة كإبر وبلورات لامعة كالجليد، بينما يتلون المحلول بكاتيونات الفلز الذائب.
+      `;
+    } else if (s === "HCl") {
+      eqBar.innerText = `${m} + 2HCl ➔ ${m}Cl₂ + H₂ ↑`;
+      infoTitle.innerText = `إزاحة هيدروجين الحمض وتصاعد الغاز:`;
+      infoTitle.style.color = "#facc15";
+      infoText.innerHTML = `
+        فلز (${m}) أنشط من الهيدروجين؛ فيطرده من حمض الهيدروكلوريك مسبباً <b>فوراناً وتصاعداً لفقاعات غاز الهيدروجين (H₂)</b> مع تكون كلوريد الفلز.
+      `;
+    } else {
+      eqBar.innerText = `${m} + ${s} ➔ تفاعل استبدال ناجح`;
+      infoTitle.innerText = `تفاعل استبدال ناجح:`;
+      infoTitle.style.color = "#10b981";
+      infoText.innerHTML = `يحل فلز (${m}) محل الفلز الأضعف في مركبه لاختلاف النشاط الكيميائي.`;
+    }
+  }
+
+  // --- محرك رسم تفاعلات الاستبدال ---
+  function renderDisplacementStage() {
+    const cx = 250, cy = 135;
+    const canReact = checkReactionPossibility();
+
+    if (isReacting && canReact && progress < 1) {
+      progress += 0.012;
+      if (progress >= 1) progress = 1;
+    }
+
+    // 1. الكأس الزجاجي
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 65, cy - 45, 130, 115);
+
+    // 2. سائل المحلول (يتغير لونه تدريجياً إذا كان هناك تفاعل)
+    let curLiquidColor = selectedSol.initColor;
+    if (canReact && progress > 0) {
+      if (selectedSol.id === "CuSO4") {
+        // الأزرق يتلاشى تدريجياً ليصبح شفافاً أو مائلاً للأخضر الفاتح (FeSO4)
+        const alpha = 0.45 * (1 - progress * 0.85);
+        curLiquidColor = selectedMetal.id === "Fe"
+          ? `rgba(52, 211, 153, ${progress * 0.35 + (1-progress)*0.2})`
+          : `rgba(56, 189, 248, ${alpha})`;
+      } else if (selectedSol.id === "AgNO3" && selectedMetal.id === "Cu") {
+        // الشفاف يتحول لأزرق سماوي
+        curLiquidColor = `rgba(56, 189, 248, ${progress * 0.4})`;
+      }
+    }
+
+    ctx.fillStyle = curLiquidColor;
+    ctx.fillRect(cx - 63, cy - 20, 126, 88);
+
+    // 3. صفيحة الفلز الصلب المغمورة في السائل
+    const plateX = cx - 14;
+    const plateY = isReacting ? cy - 30 : cy - 50; // تهبط الصفيحة عند بدء التفاعل
+    const plateW = 28;
+    const plateH = 85;
+
+    ctx.save();
+    ctx.fillStyle = selectedMetal.color;
+    ctx.fillRect(plateX, plateY, plateW, plateH);
+    ctx.strokeStyle = "#475569"; ctx.lineWidth = 1.5; ctx.strokeRect(plateX, plateY, plateW, plateH);
+
+    // رسم تأثير التفاعل على الصفيحة المغمورة (تآكل أو ترسب)
+    if (canReact && progress > 0.1) {
+      const submergeH = 50 * progress;
+      if (selectedSol.id === "CuSO4") {
+        // ترسب النحاس البني المحمر على الصفيحة
+        ctx.fillStyle = "rgba(180, 83, 9, 0.85)";
+        ctx.fillRect(plateX - 1, plateY + plateH - submergeH, plateW + 2, submergeH);
+      } else if (selectedSol.id === "AgNO3") {
+        // شجرة بلورات الفضة الإبرية اللامعة
+        ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+        for (let i = 0; i < 16; i++) {
+          const needleY = plateY + plateH - Math.random() * submergeH;
+          const dir = i % 2 === 0 ? 1 : -1;
+          ctx.beginPath();
+          ctx.moveTo(plateX + (dir === 1 ? plateW : 0), needleY);
+          ctx.lineTo(plateX + (dir === 1 ? plateW + 12 : -12), needleY - 6);
+          ctx.stroke();
+        }
+      }
+    }
+
+    // كتابة رمز الفلز على أعلى الصفيحة
+    ctx.fillStyle = "#0f172a"; ctx.font = "bold 11px monospace"; ctx.textAlign = "center";
+    ctx.fillText(selectedMetal.id, plateX + plateW/2, plateY + 16);
+    ctx.restore();
+
+    // 4. فقاعات الهيدروجين عند التفاعل مع الحمض
+    if (canReact && selectedSol.id === "HCl" && isReacting) {
+      if (Math.random() < 0.35) playSound("fizz");
+      for (let i = 0; i < 12; i++) {
+        ctx.fillStyle = "rgba(255,255,255,0.75)";
+        ctx.beginPath();
+        const bx = cx - 25 + Math.random() * 50;
+        const by = cy + 60 - Math.random() * 65;
+        ctx.arc(bx, by, 1.5 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // لافتة "لا يحدث تفاعل" عند الفشل العلمي
+    if (isReacting && !canReact) {
+      ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+      ctx.fillRect(cx - 75, cy + 20, 150, 26);
+      ctx.fillStyle = "#fff"; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("❌ لا يحدث تفاعل كيميائي", cx, cy + 37);
+    }
+  }
+
+  // --- وضع مختبر تآكل وحماية الفلزات ---
+  function setCorrosionTarget(target) {
+    corrosionTarget = target;
+    document.getElementById("btnRustFe").className = target === "Fe" ? "act-btn active" : "act-btn";
+    document.getElementById("btnPassAl").className = target === "Al" ? "act-btn active" : "act-btn";
+    resetCorrosionSim();
+  }
+
+  function startCorrosionSim() {
+    if (isCorroding || corrosionProgress >= 1) return;
+    isCorroding = true;
+    playSound("clang");
+  }
+
+  function resetCorrosionSim() {
+    isCorroding = false;
+    corrosionProgress = 0;
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+
+    if (corrosionTarget === "Fe") {
+      infoTitle.innerText = "تآكل وصدأ الحديد (Fe) ص 74:";
+      infoTitle.style.color = "#f87171";
+      infoText.innerHTML = "<b>صدأ هش ومستمر:</b> يتفاعل الحديد مع الرطوبة والأوكسجين لإنتاج طبقة بنية متشققة من الصدأ تتقشر باستمرار وتسمح بتعمق التآكل حتى انهيار المعدن بالكامل.";
+    } else {
+      infoTitle.innerText = "حماية الألمنيوم الذاتية (Al) ص 74:";
+      infoTitle.style.color = "#34d399";
+      infoText.innerHTML = "<b>ظاهرة التخميد والحماية:</b> يتفاعل الألمنيوم فوراً مع الأوكسجين ليكون طبقة شديدة الالتصاق والصلابة من أكسيد الألمنيوم (Al₂O₃) تمنع وصول الهواء نهائياً وتحميه من الصدأ.";
+    }
+  }
+
+  function renderCorrosionStage() {
+    const cx = 250, cy = 115;
+    if (isCorroding && corrosionProgress < 1) {
+      corrosionProgress += 0.015;
+      if (corrosionProgress >= 1) corrosionProgress = 1;
+    }
+
+    const p = corrosionProgress;
+    const isIron = corrosionTarget === "Fe";
+
+    // قطاع معدني سميك
+    const blockW = 180, blockH = 65;
+    ctx.save();
+    ctx.fillStyle = isIron ? "#64748b" : "#94a3b8";
+    ctx.fillRect(cx - blockW/2, cy - blockH/2, blockW, blockH);
+    ctx.strokeStyle = "#334155"; ctx.lineWidth = 2; ctx.strokeRect(cx - blockW/2, cy - blockH/2, blockW, blockH);
+
+    ctx.fillStyle = "#fff"; ctx.font = "bold 13px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(isIron ? "معدن الحديد النقي (Fe)" : "معدن الألمنيوم النقي (Al)", cx, cy + 5);
+
+    // رسم طبقة التآكل أو الحماية السطحية
+    if (p > 0.05) {
+      if (isIron) {
+        // طبقة صدأ بنية متشققة وهشة تتقشر وتتساقط
+        ctx.fillStyle = "#b45309";
+        const rustH = p * 16;
+        ctx.fillRect(cx - blockW/2 - 2, cy - blockH/2 - rustH, blockW + 4, rustH);
+
+        // شقوق الصدأ الهش
+        ctx.strokeStyle = "#78350f"; ctx.lineWidth = 1.5;
+        for (let i = 0; i < 7; i++) {
+          const sx = cx - blockW/2 + 25 * i;
+          ctx.beginPath(); ctx.moveTo(sx, cy - blockH/2 - rustH); ctx.lineTo(sx + 8, cy - blockH/2); ctx.stroke();
+        }
+
+        // قشور تتساقط
+        ctx.fillStyle = "#92400e";
+        for (let k = 0; k < 8; k++) {
+          ctx.fillRect(cx - 70 + k * 18, cy + blockH/2 + 10 + Math.random()*8, 5, 4);
+        }
+
+        ctx.fillStyle = "#facc15"; ctx.font = "bold 11px 'Cairo', sans-serif";
+        ctx.fillText("طبقة صدأ بنية هشة مسامية تتقشر وتتآكل", cx, cy - 35);
+      } else {
+        // طبقة حماية أكسيد الألمنيوم فائقة التماسك
+        ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+        ctx.fillRect(cx - blockW/2, cy - blockH/2 - 8, blockW, 8);
+        ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2; ctx.strokeRect(cx - blockW/2, cy - blockH/2 - 8, blockW, 8);
+
+        ctx.fillStyle = "#34d399"; ctx.font = "bold 11px 'Cairo', sans-serif";
+        ctx.fillText("🛡️ غشاء أكسيد صلب غير مسامي عازل (Al₂O₃) يحمي الفلز", cx, cy - 25);
+      }
+    }
+    ctx.restore();
+  }
+
+  // حلقة الرسم العامة
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (currentMainTab === "disp") {
+      renderDisplacementStage();
+    } else {
+      renderCorrosionStage();
+    }
+    requestAnimationFrame(loop);
+  }
+
+  // التهيئة والبدء
+  buildSelectors();
+  resetSim();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
