@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>خلية التحليل الكهربائي للماء | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 12px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* زر الرجوع */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11.5px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* لوحة القياس الرقمية */
+    .meters-bar {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: #1e293b;
+      padding: 8px 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;
+    }
+    .meter-item { display: flex; flex-direction: column; gap: 2px; }
+    .meter-label { font-size: 10.5px; color: #94a3b8; font-weight: 600; }
+    .meter-val { font-size: 14px; font-weight: bold; color: #f8fafc; font-family: monospace; }
+    .val-h2 { color: #38bdf8; }
+    .val-o2 { color: #ef4444; }
+
+    /* منطقة الرسم */
+    .canvas-wrapper {
+      position: relative; width: 100%; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: center;
+    }
+    canvas { display: block; width: 100%; max-width: 440px; height: auto; }
+
+    /* لوحة التحكم الرئيسية */
+    .controls-panel {
+      width: 100%; background: #1e293b; padding: 12px; border-radius: 12px;
+      display: flex; flex-direction: column; gap: 10px; border: 1px solid #334155;
+    }
+    .control-row { display: flex; gap: 8px; }
+
+    .btn {
+      flex: 1; padding: 9px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; border: none;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-power { background: #10b981; color: white; border: 1px solid #34d399; }
+    .btn-power.off { background: #ef4444; border-color: #f87171; }
+    .btn-salt { background: #475569; color: #f8fafc; border: 1px solid #64748b; }
+    .btn-salt.active { background: #0284c7; border-color: #38bdf8; }
+    .btn-test { background: #334155; color: #f1f5f9; border: 1px solid #475569; font-size: 12px; }
+    .btn-reset { background: #1e293b; color: #94a3b8; border: 1px solid #334155; flex: 0.4; }
+
+    /* شريط الجهد الكهربائي */
+    .slider-box { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; }
+    input[type=range] {
+      flex: 1; -webkit-appearance: none; height: 6px; border-radius: 3px;
+      background: #334155; outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: #38bdf8; cursor: pointer;
+    }
+
+    /* صندوق التفسير العلمي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 80px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>خلية التحليل الكهربائي للماء</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <div class="meters-bar">
+    <div class="meter-item">
+      <span class="meter-label">غاز H₂ (الكاثود)</span>
+      <span class="meter-val val-h2" id="valH2">0.00 ml</span>
+    </div>
+    <div class="meter-item">
+      <span class="meter-label">النسبة الحجمية</span>
+      <span class="meter-val" id="valRatio">0 : 0</span>
+    </div>
+    <div class="meter-item">
+      <span class="meter-label">غاز O₂ (الأنود)</span>
+      <span class="meter-val val-o2" id="valO2">0.00 ml</span>
+    </div>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="simCanvas" width="440" height="350"></canvas>
+  </div>
+
+  <div class="controls-panel">
+    <div class="control-row">
+      <button class="btn btn-power" id="powerBtn" onclick="togglePower()">⚡ توصيل التيار (تشغيل)</button>
+      <button class="btn btn-salt" id="saltBtn" onclick="toggleSalt()">🧂 إضافة ملح (NaCl)</button>
+      <button class="btn btn-reset" onclick="resetSim()">🔄 تفريغ</button>
+    </div>
+
+    <div class="slider-box">
+      <span>جهد البطارية: <b id="voltText">12V</b></span>
+      <input type="range" id="voltSlider" min="6" max="24" value="12" step="2" oninput="updateVoltage()">
+      <span>شدة التيار: <b id="currentText">0 mA</b></span>
+    </div>
+
+    <div class="control-row">
+      <button class="btn btn-test" id="testH2Btn" onclick="testGas('H2')">🔥 فحص الهيدروجين (فرقعة)</button>
+      <button class="btn btn-test" id="testO2Btn" onclick="testGas('O2')">🕯️ فحص الأوكسجين (توهج)</button>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">حالة الخلية قبل التشغيل:</div>
+    <div id="infoText">
+      الماء النقي ضعيف التوصيل للكهرباء. يجب الضغط على زر <b>«إضافة ملح (NaCl)»</b> ثم <b>«توصيل التيار»</b> لمشاهدة تفكك جزيء الماء إلى حجمين من الهيدروجين وحجم من الأوكسجين.
+    </div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // المتغيرات التشغيلية
+  let isPowered = false;
+  let hasSalt = false;
+  let voltage = 12;
+  let gasVolumeH2 = 0; // يصل لـ 40 ml كحد أقصى للأنبوب
+  let gasVolumeO2 = 0; // يصل لـ 20 ml
+  let maxH2 = 40;
+  let testEffect = { active: false, type: '', timer: 0 };
+  let bubbles = [];
+  let electrons = [];
+
+  // إعداد الإلكترونات في الدارة
+  for (let i = 0; i < 24; i++) {
+    electrons.push({ progress: i / 24 });
+  }
+
+  // توليد صوت فيزيائي بدون ملفات خارجية عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playPopSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.18);
+    gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.18);
+  }
+
+  function playIgniteSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const bufferSize = audioCtx.sampleRate * 0.25;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass'; filter.frequency.value = 1000;
+    noise.connect(filter); filter.connect(audioCtx.destination);
+    noise.start();
+  }
+
+  function togglePower() {
+    isPowered = !isPowered;
+    const btn = document.getElementById("powerBtn");
+    if (isPowered) {
+      btn.innerText = "⏹ فصل التيار (إيقاف)";
+      btn.className = "btn btn-power off";
+      updateExplanations();
+    } else {
+      btn.innerText = "⚡ توصيل التيار (تشغيل)";
+      btn.className = "btn btn-power";
+      document.getElementById("currentText").innerText = "0 mA";
+    }
+  }
+
+  function toggleSalt() {
+    hasSalt = !hasSalt;
+    const btn = document.getElementById("saltBtn");
+    btn.className = hasSalt ? "btn btn-salt active" : "btn btn-salt";
+    btn.innerText = hasSalt ? "🧂 تم إضافة الملح ✓" : "🧂 إضافة ملح (NaCl)";
+    updateExplanations();
+  }
+
+  function updateVoltage() {
+    voltage = parseInt(document.getElementById("voltSlider").value);
+    document.getElementById("voltText").innerText = voltage + "V";
+  }
+
+  function resetSim() {
+    gasVolumeH2 = 0;
+    gasVolumeO2 = 0;
+    testEffect.active = false;
+    updateMeters();
+    document.getElementById("infoTitle").innerText = "تم تفريغ الغازات:";
+    document.getElementById("infoText").innerHTML = "تم إعادة ملء الأنابيب بالماء بالكامل لتكرار التجربة ومراقبة القياسات.";
+  }
+
+  function updateExplanations() {
+    const title = document.getElementById("infoTitle");
+    const desc = document.getElementById("infoText");
+
+    if (isPowered && !hasSalt) {
+      title.innerText = "تنبيه: التيار لا يسري!";
+      title.style.color = "#f59e0b";
+      desc.innerHTML = "<b>الماء النقي ضعيف التأين:</b> الأيونات الحرة غير كافية لنقل الشحنة. أضف ملح الطعام (NaCl) لتوفير أيونات تنقل الإلكترونات عبر المحلول.";
+    } else if (isPowered && hasSalt) {
+      title.innerText = "التحليل الكهربائي نشط الآن:";
+      title.style.color = "#10b981";
+      desc.innerHTML = "يتفكك الماء إلى <b>حجمين من غاز الهيدروجين (H₂)</b> عند الكاثود السالب، و<b>حجم واحد من الأوكسجين (O₂)</b> عند الأنود الموجب وفق المعادلة: 2H₂O ➔ 2H₂ + O₂.";
+    }
+  }
+
+  function updateMeters() {
+    document.getElementById("valH2").innerText = gasVolumeH2.toFixed(1) + " ml";
+    document.getElementById("valO2").innerText = gasVolumeO2.toFixed(1) + " ml";
+    let ratio = gasVolumeO2 > 0 ? (gasVolumeH2 / gasVolumeO2).toFixed(1) : "0";
+    document.getElementById("valRatio").innerText = `${ratio} : 1.0`;
+  }
+
+  function testGas(type) {
+    if (type === 'H2') {
+      if (gasVolumeH2 < 4) { alert("اجمع كمية كافية من غاز الهيدروجين أولاً!"); return; }
+      playPopSound();
+      testEffect = { active: true, type: 'H2', timer: 30, x: 155, y: 55 };
+      document.getElementById("infoTitle").innerText = "نتيجة فحص الهيدروجين:";
+      document.getElementById("infoTitle").style.color = "#38bdf8";
+      document.getElementById("infoText").innerHTML = "<b>صوت فرقعة مميز (Pop Sound):</b> اشتعل غاز الهيدروجين المتجمع عند الكاثود بفرقعة خفيفة ولهب أزرق، وهو الدليل القاطع على أنه غاز الهيدروجين.";
+      gasVolumeH2 = Math.max(0, gasVolumeH2 - 12);
+    } else {
+      if (gasVolumeO2 < 2) { alert("اجمع كمية كافية من غاز الأوكسجين أولاً!"); return; }
+      playIgniteSound();
+      testEffect = { active: true, type: 'O2', timer: 35, x: 285, y: 55 };
+      document.getElementById("infoTitle").innerText = "نتيجة فحص الأوكسجين:";
+      document.getElementById("infoTitle").style.color = "#ef4444";
+      document.getElementById("infoText").innerHTML = "<b>توهج واشتعال الشظية:</b> تسبب الأوكسجين النقي المتجمع عند الأنود في إعادة اشتعال الشظية الخشبية المتقدة بقوة، لأنه غاز يساعد على الاشتعال.";
+      gasVolumeO2 = Math.max(0, gasVolumeO2 - 6);
+    }
+    updateMeters();
+  }
+
+  // المحرك الفيزيائي
+  function updatePhysics() {
+    const isEvolving = isPowered && hasSalt;
+    const currentVal = isEvolving ? Math.round(voltage * 18.5) : 0;
+    document.getElementById("currentText").innerText = currentVal + " mA";
+
+    if (isEvolving) {
+      const rate = (voltage / 12) * 0.025;
+      if (gasVolumeH2 < maxH2) {
+        gasVolumeH2 += rate * 2;
+        gasVolumeO2 += rate * 1;
+        updateMeters();
+      }
+
+      // توليد فقاعات بنسبة 2 إلى 1
+      if (Math.random() < 0.7) {
+        bubbles.push({ x: 155 + (Math.random() - 0.5) * 14, y: 240, r: 2 + Math.random() * 2.5, isH2: true, vy: 1.5 + Math.random() });
+      }
+      if (Math.random() < 0.35) {
+        bubbles.push({ x: 285 + (Math.random() - 0.5) * 14, y: 240, r: 2 + Math.random() * 2.5, isH2: false, vy: 1.4 + Math.random() });
+      }
+
+      // حركة الإلكترونات
+      electrons.forEach(e => {
+        e.progress = (e.progress + 0.008 * (voltage / 12)) % 1;
+      });
+    }
+
+    // تحديث حركة الفقاعات
+    for (let i = bubbles.length - 1; i >= 0; i--) {
+      const b = bubbles[i];
+      b.y -= b.vy;
+      const hLimit = b.isH2 ? 60 + (gasVolumeH2 / maxH2) * 140 : 60 + (gasVolumeO2 / maxH2) * 140;
+      if (b.y <= hLimit) bubbles.splice(i, 1);
+    }
+  }
+
+  // رسم المشهد بالكامل
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 1. رسم أسلاك الدارة الكهربائية
+    drawCircuit();
+
+    // 2. وعاء الماء الزجاجي وقاعدته
+    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3;
+    ctx.strokeRect(100, 190, 240, 95);
+    ctx.fillStyle = hasSalt ? "rgba(56, 189, 248, 0.28)" : "rgba(56, 189, 248, 0.15)";
+    ctx.fillRect(102, 192, 236, 91);
+
+    // 3. أنبوبتا التحليل المدرجتان (Voltameter Tubes)
+    drawGraduatedTube(135, 50, 40, 200, gasVolumeH2, "H₂ (كاثود -)");
+    drawGraduatedTube(265, 50, 40, 200, gasVolumeO2, "O₂ (أنود +)");
+
+    // 4. قطبا الغرافيت (Graphite Electrodes)
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(150, 200, 10, 75);
+    ctx.fillRect(280, 200, 10, 75);
+
+    // 5. رسم الفقاعات
+    bubbles.forEach(b => {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = b.isH2 ? "rgba(255,255,255,0.85)" : "rgba(254,202,202,0.9)";
+      ctx.fill();
+    });
+
+    // 6. تأثير فحص الغاز (لهب الفرقعة / اشتعال الشظية)
+    if (testEffect.active) {
+      drawTestFlame(testEffect.x, testEffect.y, testEffect.type);
+      testEffect.timer--;
+      if (testEffect.timer <= 0) testEffect.active = false;
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  // رسم الأنبوبة مع التدريج وإزاحة السائل
+  function drawGraduatedTube(x, y, w, h, gasVol, label) {
+    ctx.save();
+    // الزجاج الخارجي
+    ctx.strokeStyle = "rgba(255,255,255,0.65)"; ctx.lineWidth = 2.5;
+    ctx.strokeRect(x, y, w, h);
+
+    // صمام علوي (Stopcock)
+    ctx.fillStyle = "#64748b"; ctx.fillRect(x + w/2 - 4, y - 14, 8, 14);
+    ctx.fillStyle = "#38bdf8"; ctx.fillRect(x + w/2 - 12, y - 10, 24, 6);
+
+    // مستوى السائل والغاز
+    let gasHeight = (gasVol / maxH2) * 140;
+    // الغاز المتجمع
+    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+    ctx.fillRect(x + 2, y + 2, w - 4, gasHeight);
+
+    // الماء داخل الأنبوب
+    ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
+    ctx.fillRect(x + 2, y + 2 + gasHeight, w - 4, h - 4 - gasHeight);
+
+    // خطوط التدريج بالأرقام
+    ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 1;
+    ctx.fillStyle = "#cbd5e1"; ctx.font = "9px monospace";
+    for (let i = 0; i <= 8; i++) {
+      let markY = y + 10 + i * 16;
+      ctx.beginPath(); ctx.moveTo(x + w - 8, markY); ctx.lineTo(x + w, markY); ctx.stroke();
+      if (i % 2 === 0) ctx.fillText((i * 5) + "", x + w - 22, markY + 3);
+    }
+
+    // عنوان القطب
+    ctx.fillStyle = label.includes("H₂") ? "#38bdf8" : "#ef4444";
+    ctx.font = "bold 11px 'Cairo', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(label, x + w / 2, y - 20);
+    ctx.restore();
+  }
+
+  // رسم الدارة الكهربائية وتدفق الإلكترونات
+  function drawCircuit() {
+    ctx.save();
+    // صندوق البطارية
+    ctx.fillStyle = "#1e293b"; ctx.strokeStyle = "#475569"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(170, 298, 100, 42, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#f8fafc"; ctx.font = "bold 12px monospace"; ctx.textAlign = "center";
+    ctx.fillText(`DC ${voltage}V`, 220, 324);
+
+    // أقطاب البطارية
+    ctx.fillStyle = "#38bdf8"; ctx.fillRect(180, 292, 16, 6); // سالب
+    ctx.fillStyle = "#ef4444"; ctx.fillRect(244, 292, 16, 6); // موجب
+    ctx.font = "bold 11px sans-serif"; ctx.fillText("-", 188, 288); ctx.fillText("+", 252, 288);
+
+    // أسلاك التوصيل
+    ctx.strokeStyle = isPowered ? "#38bdf8" : "#475569"; ctx.lineWidth = 2.5;
+    // سلك الكاثود السالب (أزرق)
+    ctx.beginPath(); ctx.moveTo(188, 292); ctx.lineTo(188, 275); ctx.lineTo(155, 275); ctx.stroke();
+    // سلك الأنود الموجب (أحمر)
+    ctx.strokeStyle = isPowered ? "#ef4444" : "#475569";
+    ctx.beginPath(); ctx.moveTo(252, 292); ctx.lineTo(252, 275); ctx.lineTo(285, 275); ctx.stroke();
+
+    // حركة شحنات الإلكترونات عبر الأسلاك
+    if (isPowered && hasSalt) {
+      ctx.fillStyle = "#fbbf24";
+      electrons.forEach(e => {
+        let ex = 188 - e.progress * 33;
+        ctx.beginPath(); ctx.arc(ex, 275, 2.5, 0, Math.PI * 2); ctx.fill();
+        let ox = 252 + e.progress * 33;
+        ctx.beginPath(); ctx.arc(ox, 275, 2.5, 0, Math.PI * 2); ctx.fill();
+      });
+    }
+    ctx.restore();
+  }
+
+  // رسم وميض الفحص (الشعلة / الشظية)
+  function drawTestFlame(x, y, type) {
+    ctx.save();
+    if (type === 'H2') {
+      // لهب أزرق وفرقعة غاز الهيدروجين
+      ctx.fillStyle = "rgba(56, 189, 248, 0.8)";
+      ctx.beginPath(); ctx.arc(x, y, 16 + Math.random() * 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // لهب مشتعل ساطع للأوكسجين
+      ctx.fillStyle = "#ef4444";
+      ctx.beginPath(); ctx.moveTo(x - 8, y + 10); ctx.lineTo(x + 8, y + 10); ctx.lineTo(x, y - 22); ctx.fill();
+      ctx.fillStyle = "#fbbf24";
+      ctx.beginPath(); ctx.moveTo(x - 4, y + 8); ctx.lineTo(x + 4, y + 8); ctx.lineTo(x, y - 14); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function loop() {
+    updatePhysics();
+    render();
+  }
+
+  updateMeters();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
