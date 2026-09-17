@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>نظائر العناصر والكتلة الذرية | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 12px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11.5px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* شريط اختيار عائلات النظائر */
+    .element-tabs {
+      display: grid; grid-template-columns: 1fr 1fr 1fr 1.2fr; gap: 6px;
+    }
+    .el-btn {
+      background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 6px 4px; border-radius: 8px; font-size: 11.5px; font-weight: bold;
+      cursor: pointer; transition: all 0.2s; font-family: 'Cairo', sans-serif; text-align: center;
+    }
+    .el-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.3); }
+
+    /* شريط النظائر الخاصة بالعنصر المحدد */
+    .isotopes-subtabs {
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+    }
+    .isotopes-subtabs::-webkit-scrollbar { display: none; }
+    .iso-chip {
+      flex: 1; background: rgba(30, 41, 59, 0.7); border: 1px solid #334155; color: #cbd5e1;
+      padding: 5px 8px; border-radius: 7px; font-size: 11.5px; font-weight: 700; cursor: pointer; text-align: center;
+    }
+    .iso-chip.active { background: #10b981; border-color: #34d399; color: #fff; }
+    .iso-chip.radioactive.active { background: #ef4444; border-color: #f87171; }
+
+    /* لوحة العدادات النووية */
+    .counters-bar {
+      display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; background: #1e293b;
+      padding: 8px 10px; border-radius: 10px; border: 1px solid #334155; text-align: center;
+    }
+    .cnt-item { display: flex; flex-direction: column; gap: 1px; }
+    .cnt-lbl { font-size: 10px; color: #94a3b8; font-weight: 600; }
+    .cnt-val { font-size: 13.5px; font-weight: 800; font-family: monospace; }
+    .val-p { color: #f87171; }
+    .val-n { color: #94a3b8; }
+    .val-a { color: #facc15; }
+    .val-status { font-size: 11px; }
+
+    /* كانفاس المحاكاة */
+    .canvas-wrapper {
+      position: relative; width: 100%; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: center;
+    }
+    canvas { display: block; width: 100%; max-width: 460px; height: auto; }
+
+    /* بطاقة الوفرة الطبيعية وحساب الكتلة الذرية */
+    .abundance-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      padding: 8px 12px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .ab-header { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 700; }
+    .ab-bar-outer {
+      width: 100%; height: 10px; background: #0f172a; border-radius: 5px; overflow: hidden; display: flex;
+    }
+    .ab-fill { height: 100%; transition: width 0.3s ease; }
+
+    /* صندوق الشرح العلمي والتطبيقات */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 85px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+    .medical-badge {
+      display: inline-block; background: rgba(239, 68, 68, 0.15); color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 5px; padding: 1px 6px;
+      font-size: 10.5px; font-weight: bold; margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>نظائر العناصر والكتلة الذرية</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- شريط العائلات -->
+  <div class="element-tabs" id="elementTabs"></div>
+
+  <!-- أزرار النظائر الفرعية -->
+  <div class="isotopes-subtabs" id="isotopeSubtabs"></div>
+
+  <!-- لوحة الأرقام النووية -->
+  <div class="counters-bar">
+    <div class="cnt-item">
+      <span class="cnt-lbl">البروتونات (Z)</span>
+      <span class="cnt-val val-p" id="valZ">1</span>
+    </div>
+    <div class="cnt-item">
+      <span class="cnt-lbl">النيوترونات (N)</span>
+      <span class="cnt-val val-n" id="valN">0</span>
+    </div>
+    <div class="cnt-item">
+      <span class="cnt-lbl">العدد الكتلي (A)</span>
+      <span class="cnt-val val-a" id="valA">1</span>
+    </div>
+    <div class="cnt-item">
+      <span class="cnt-lbl">الحالة النووية</span>
+      <span class="cnt-val val-status" id="valStatus" style="color:#10b981;">مستقرة ✓</span>
+    </div>
+  </div>
+
+  <!-- كانفاس النواة والإشعاع -->
+  <div class="canvas-wrapper">
+    <canvas id="simCanvas" width="460" height="300"></canvas>
+  </div>
+
+  <!-- شريط الوفرة الطبيعية وحساب الكتلة -->
+  <div class="abundance-card" id="abundanceCard"></div>
+
+  <!-- صندوق التفسير العلمي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">مفهوم النظائر:</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // قاعدة بيانات النظائر المقررة في المنهج
+  const isotopesDb = {
+    H: {
+      name: "الهيدروجين (H)", z: 1, avgMass: "1.008 u",
+      isotopes: [
+        { id: "H1", sym: "¹H", name: "بروتيوم (هيدروجين شائع)", p: 1, n: 0, a: 1, abundance: 99.98, isRadioactive: false,
+          desc: "النظير الأكثر وفرة في الكون (99.98%). نواته تتكون من <b>بروتون واحد فقط</b> ولا تحتوي على أي نيوترون." },
+        { id: "H2", sym: "²H", name: "ديوتيريوم (ماء ثقيل)", p: 1, n: 1, a: 2, abundance: 0.015, isRadioactive: false,
+          desc: "يحتوي على بروتون واحد و<b>نيوترون واحد</b>، كتلته ضعف الهيدروجين العادي ويدخل في تركيب الماء الثقيل المستخدم في المفاعلات." },
+        { id: "H3", sym: "³H", name: "تريتيوم (مشع)", p: 1, n: 2, a: 3, abundance: 0.005, isRadioactive: true,
+          desc: "نواة غير مستقرة تحتوي على بروتون و<b>نيوترونين</b>؛ مما يسبب عدم استقرارها وإطلاقها لإشعاعات بيتا للوصول للاستقرار." }
+      ]
+    },
+    C: {
+      name: "الكاربون (C)", z: 6, avgMass: "12.011 u",
+      isotopes: [
+        { id: "C12", sym: "¹²C", name: "كاربون-12 (المرجعي)", p: 6, n: 6, a: 12, abundance: 98.93, isRadioactive: false,
+          desc: "يمتلك 6 بروتونات و6 نيوترونات. وهو النظير الأساسي المتفق عليه عالمياً كوحدة معيارية لقياس الكتل الذرية." },
+        { id: "C13", sym: "¹³C", name: "كاربون-13", p: 6, n: 7, a: 13, abundance: 1.07, isRadioactive: false,
+          desc: "يمتلك 6 بروتونات و<b>7 نيوترونات</b>، وهو نظير مستقر يستعمل في التحاليل الطبية والبحثية الرنينية (NMR)." },
+        { id: "C14", sym: "¹⁴C", name: "كاربون-14 (المشع)", p: 6, n: 8, a: 14, abundance: 0.0001, isRadioactive: true,
+          desc: "يمتلك 6 بروتونات و<b>8 نيوترونات</b>؛ نظير غير مستقر يُستخدم في تقدير أعمار الحفريات والآثار القديمة (النشاط الإشعاعي)." }
+      ]
+    },
+    Cl: {
+      name: "الكلور (Cl)", z: 17, avgMass: "35.45 u (≈ 35.5)",
+      isotopes: [
+        { id: "Cl35", sym: "³⁵Cl", name: "كلور-35", p: 17, n: 18, a: 35, abundance: 75.77, isRadioactive: false,
+          desc: "يمتلك 17 بروتوناً و18 نيوتروناً. يشكل حوالي 75% من ذرات الكلور في الطبيعة." },
+        { id: "Cl37", sym: "³⁷Cl", name: "كلور-37", p: 17, n: 20, a: 37, abundance: 24.23, isRadioactive: false,
+          desc: "يمتلك 17 بروتوناً و<b>20 نيوتروناً</b>. يشكل 25% من ذرات الكلور، وهذا التوزيع يجعل متوسط الكتلة الذرية للكلور مساوياً 35.5." }
+      ]
+    },
+    Med: {
+      name: "النظائر الطبية 🏥", z: 27, avgMass: "نظائر علاجية",
+      isotopes: [
+        { id: "Co60", sym: "⁶⁰Co", name: "كوبلت-60 المشع", p: 27, n: 33, a: 60, abundance: 0, isRadioactive: true,
+          medicalTag: "علاج الأورام السرطانية والتعقيم",
+          desc: "يُستخدم إشعاع الكوبلت-60 في <b>علاج الأورام السرطانية</b> عبر توجيه حزم إشعاعية دقيقة، كما يُستعمل لتعقيم الأدوية والأغذية (ص 46)." },
+        { id: "I131", sym: "¹³¹I", name: "يود-131 المشع", p: 53, n: 78, a: 131, abundance: 0, isRadioactive: true,
+          medicalTag: "علاج نشاط الغدة الدرقية وتشخيص الأوعية",
+          desc: "يُحقن به المريض لتشخيص انسدادات الأوعية الدموية، وعلاج <b>فرط نشاط الغدة الدرقية</b> لأن اليود يتركز ذاتياً داخل خلاياها (ص 46)." }
+      ]
+    }
+  };
+
+  let curElementKey = "H";
+  let curIsotopeIdx = 0;
+  let pulseTimer = 0;
+
+  // توليد صوت فيزيائي عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playClick(freq = 480, dur = 0.08) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  }
+
+  function playGeigerTick() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.02, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.2));
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'highpass'; filter.frequency.value = 1200;
+    src.connect(filter); filter.connect(audioCtx.destination);
+    src.start();
+  }
+
+  // بناء أزرار العائلات
+  const elTabs = document.getElementById("elementTabs");
+  Object.keys(isotopesDb).forEach(k => {
+    const btn = document.createElement("button");
+    btn.className = `el-btn ${k === 'H' ? 'active' : ''}`;
+    btn.id = `el-btn-${k}`;
+    btn.innerText = isotopesDb[k].name;
+    btn.onclick = () => selectElement(k);
+    elTabs.appendChild(btn);
+  });
+
+  function selectElement(k) {
+    curElementKey = k;
+    curIsotopeIdx = 0;
+    document.querySelectorAll(".el-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(`el-btn-${k}`).classList.add("active");
+    playClick(520);
+    buildSubtabs();
+    updateUI();
+  }
+
+  function buildSubtabs() {
+    const subBox = document.getElementById("isotopeSubtabs");
+    subBox.innerHTML = "";
+    const list = isotopesDb[curElementKey].isotopes;
+    list.forEach((iso, idx) => {
+      const chip = document.createElement("button");
+      chip.className = `iso-chip ${idx === curIsotopeIdx ? 'active' : ''} ${iso.isRadioactive ? 'radioactive' : ''}`;
+      chip.id = `iso-chip-${idx}`;
+      chip.innerText = `${iso.sym} - ${iso.name.split(' ')[0]}`;
+      chip.onclick = () => {
+        curIsotopeIdx = idx;
+        document.querySelectorAll(".iso-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        playClick(iso.isRadioactive ? 620 : 440);
+        updateUI();
+      };
+      subBox.appendChild(chip);
+    });
+  }
+
+  function updateUI() {
+    const iso = isotopesDb[curElementKey].isotopes[curIsotopeIdx];
+    const group = isotopesDb[curElementKey];
+
+    // العدادات
+    document.getElementById("valZ").innerText = iso.p;
+    document.getElementById("valN").innerText = iso.n;
+    document.getElementById("valA").innerText = iso.a;
+
+    const statusEl = document.getElementById("valStatus");
+    if (iso.isRadioactive) {
+      statusEl.innerText = "مشعة ☢️";
+      statusEl.style.color = "#f87171";
+    } else {
+      statusEl.innerText = "مستقرة ✓";
+      statusEl.style.color = "#10b981";
+    }
+
+    // بطاقة الوفرة والكتلة المتوسطة
+    const abCard = document.getElementById("abundanceCard");
+    if (curElementKey === "Med") {
+      abCard.innerHTML = `
+        <div class="ab-header">
+          <span style="color:#ef4444;">نظير صيدلاني/مشع صناعي</span>
+          <span style="color:#facc15;">الاستخدام الطبي المعتمد</span>
+        </div>
+        <div style="font-size:12px; color:#cbd5e1; font-weight:600;">
+          ينتج في المفاعلات ومسرعات الجسيمات ويخضع لقوانين التحلل الإشعاعي الصارم.
+        </div>
+      `;
+    } else {
+      let fills = "";
+      group.isotopes.forEach(item => {
+        const col = item.id === iso.id ? (item.isRadioactive ? '#ef4444' : '#10b981') : '#334155';
+        fills += `<div class="ab-fill" style="width: ${Math.max(1, item.abundance)}%; background: ${col};" title="${item.sym}"></div>`;
+      });
+
+      abCard.innerHTML = `
+        <div class="ab-header">
+          <span>نسبة وجود (${iso.sym}) في الطبيعة: <b style="color:#38bdf8;">${iso.abundance}%</b></span>
+          <span>متوسط الكتلة الذرية للعنصر: <b style="color:#facc15;">${group.avgMass}</b></span>
+        </div>
+        <div class="ab-bar-outer">${fills}</div>
+      `;
+    }
+
+    // الشرح
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+
+    infoTitle.innerText = `${iso.name} (${iso.sym}):`;
+    infoTitle.style.color = iso.isRadioactive ? "#f87171" : "#38bdf8";
+
+    let tagHtml = iso.medicalTag ? `<div class="medical-badge">🩺 استخدام طبي: ${iso.medicalTag}</div><br>` : "";
+    infoText.innerHTML = `
+      ${tagHtml}
+      ${iso.desc}<br>
+      <span style="color:#94a3b8; font-size:11px;">
+        قاعدة المقارنة: تتشابه النظائر في عدد البروتونات (العدد الذري) وتختلف في عدد النيوترونات (العدد الكتلي).
+      </span>
+    `;
+  }
+
+  // محرك الرسم والتحريك
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const iso = isotopesDb[curElementKey].isotopes[curIsotopeIdx];
+    const cx = 230, cy = 150;
+
+    pulseTimer += 0.03;
+
+    // رسم موجات الإشعاع إذا كان النظير مشعاً
+    if (iso.isRadioactive) {
+      if (Math.random() < 0.08) playGeigerTick();
+      for (let r = 1; r <= 3; r++) {
+        const waveRad = 55 + ((pulseTimer * 30 + r * 35) % 90);
+        const waveAlpha = Math.max(0, 1 - (waveRad - 55) / 90);
+        ctx.save();
+        ctx.strokeStyle = `rgba(239, 68, 68, ${waveAlpha * 0.7})`;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.arc(cx, cy, waveRad, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // رسم مدار إلكتروني خفيف للدلالة على الذرة ككل
+    ctx.save();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.15)";
+    ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.arc(cx, cy, 115, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    // رسم نواة النظير (البروتونات والنيوترونات ككرات مجهرية متراصة)
+    drawNucleusCluster(cx, cy, iso.p, iso.n, iso.isRadioactive);
+
+    // بطاقة الرمز أعلى الكانفاس
+    drawIsotopeBadge(cx, 35, iso.sym, iso.p, iso.a);
+
+    requestAnimationFrame(loop);
+  }
+
+  // رسم تجمع النواة
+  function drawNucleusCluster(cx, cy, pCount, nCount, isRadioactive) {
+    ctx.save();
+    // هالة النواة
+    const nucR = Math.min(50, 22 + Math.sqrt(pCount + nCount) * 4);
+    const glow = ctx.createRadialGradient(cx, cy, 5, cx, cy, nucR + 15);
+    glow.addColorStop(0, isRadioactive ? "rgba(239, 68, 68, 0.4)" : "rgba(56, 189, 248, 0.25)");
+    glow.addColorStop(1, "transparent");
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(cx, cy, nucR + 15, 0, Math.PI * 2); ctx.fill();
+
+    // تمثيل عينة الكرات في النواة
+    // لتفادي ازدحام الشاشة في الأعداد الكبيرة (كاليود 131) نقوم بنمذجة مقياسية تمثيلية
+    const maxDraw = 42;
+    const total = pCount + nCount;
+    const scale = total > maxDraw ? maxDraw / total : 1;
+    const drawP = Math.max(1, Math.round(pCount * scale));
+    const drawN = Math.round(nCount * scale);
+
+    // ترتيب حلزوني ثابت للجسيمات
+    let pDrawn = 0, nDrawn = 0;
+    const ballR = total > 20 ? 5.5 : 7.5;
+
+    for (let i = 0; i < drawP + drawN; i++) {
+      const angle = i * 2.39996; // زاوية التوزيع الذهبي (Golden Angle)
+      const dist = Math.sqrt(i) * (ballR * 1.55);
+      const bx = cx + Math.cos(angle) * dist;
+      const by = cy + Math.sin(angle) * dist;
+
+      const isProton = (i % 2 === 0 && pDrawn < drawP) || nDrawn >= drawN;
+      if (isProton) pDrawn++; else nDrawn++;
+
+      ctx.beginPath();
+      ctx.arc(bx, by, ballR, 0, Math.PI * 2);
+      ctx.fillStyle = isProton ? "#ef4444" : "#64748b";
+      ctx.strokeStyle = "rgba(255,255,255,0.4)";
+      ctx.lineWidth = 1;
+      ctx.fill(); ctx.stroke();
+
+      // علامة (+) خفيفة على البروتونات
+      if (ballR >= 7 && isProton) {
+        ctx.fillStyle = "#fff"; ctx.font = "bold 8px sans-serif";
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("+", bx, by);
+      }
+    }
+
+    // دليل الألوان أسفل النواة
+    ctx.fillStyle = "#ef4444"; ctx.beginPath(); ctx.arc(cx - 60, cy + 90, 5, 0, 6.28); ctx.fill();
+    ctx.fillStyle = "#cbd5e1"; ctx.font = "bold 10.5px 'Cairo', sans-serif"; ctx.fillText(`بروتونات (${pCount} p⁺)`, cx - 50, cy + 94);
+
+    ctx.fillStyle = "#64748b"; ctx.beginPath(); ctx.arc(cx + 35, cy + 90, 5, 0, 6.28); ctx.fill();
+    ctx.fillStyle = "#cbd5e1"; ctx.fillText(`نيوترونات (${nCount} n⁰)`, cx + 45, cy + 94);
+
+    ctx.restore();
+  }
+
+  // بطاقة تمثيل الرمز الكيميائي
+  function drawIsotopeBadge(x, y, sym, z, a) {
+    ctx.save();
+    ctx.fillStyle = "#1e293b"; ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(x - 35, y - 16, 70, 32, 6); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = "#facc15"; ctx.font = "bold 11px monospace"; ctx.textAlign = "right";
+    ctx.fillText(a + "", x - 10, y - 2);
+
+    ctx.fillStyle = "#ef4444";
+    ctx.fillText(z + "", x - 10, y + 10);
+
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(sym.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, ''), x + 10, y + 6);
+    ctx.restore();
+  }
+
+  buildSubtabs();
+  updateUI();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
