@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>بناء الذرة والتوزيع الإلكتروني | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 12px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11.5px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* لوحة الرمز والبطاقة الذرية */
+    .symbol-card {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #1e293b; padding: 8px 14px; border-radius: 12px; border: 1px solid #334155;
+    }
+    .symbol-box {
+      position: relative; font-family: 'Cairo', sans-serif; font-size: 32px; font-weight: 800;
+      color: #38bdf8; line-height: 1; padding: 0 20px 0 10px;
+    }
+    .mass-num {
+      position: absolute; right: 0; top: -2px; font-size: 12px; color: #facc15; font-family: monospace;
+    }
+    .atomic-num {
+      position: absolute; right: 0; bottom: -2px; font-size: 12px; color: #ef4444; font-family: monospace;
+    }
+    .charge-badge {
+      position: absolute; left: -14px; top: -4px; font-size: 13px; font-family: monospace; font-weight: bold;
+    }
+    .element-meta {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .el-name { font-size: 15px; font-weight: 700; color: #f8fafc; }
+    .el-status { font-size: 11.5px; font-weight: 600; }
+
+    /* منطقة الرسم (الكانفاس) */
+    .canvas-wrapper {
+      position: relative; width: 100%; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: center;
+    }
+    canvas { display: block; width: 100%; max-width: 440px; height: auto; }
+
+    /* عدادات الجسيمات */
+    .counters-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+    }
+    .counter-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 10px;
+      padding: 8px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .counter-label { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+    .counter-val { font-size: 17px; font-weight: 800; font-family: monospace; }
+    .btn-group { display: flex; gap: 6px; width: 100%; }
+    .ctrl-btn {
+      flex: 1; height: 26px; border-radius: 6px; border: none; font-size: 14px;
+      font-weight: bold; cursor: pointer; color: white; display: flex;
+      align-items: center; justify-content: center; transition: 0.15s;
+    }
+    .ctrl-btn:active { transform: scale(0.92); }
+    .btn-p { background: #ef4444; }
+    .btn-n { background: #64748b; }
+    .btn-e { background: #0284c7; }
+
+    /* شريط العناصر المنهجية الجاهزة */
+    .elements-bar {
+      display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;
+    }
+    .elements-bar::-webkit-scrollbar { display: none; }
+    .el-chip {
+      flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 3px 10px; border-radius: 7px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+    }
+    .el-chip.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+
+    /* لوحة الأزرار السريعة */
+    .quick-actions {
+      display: flex; gap: 8px;
+    }
+    .action-btn {
+      flex: 1; padding: 7px 0; border-radius: 8px; font-size: 12px; font-weight: bold;
+      border: 1px solid #334155; background: #1e293b; color: #cbd5e1; cursor: pointer;
+      font-family: 'Cairo', sans-serif; transition: 0.15s;
+    }
+    .action-btn:active { transform: scale(0.96); background: #334155; }
+
+    /* صندوق الشرح العلمي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 75px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>بناء الذرة والتوزيع الإلكتروني</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- بطاقة العنصر والرمز الكيميائي -->
+  <div class="symbol-card">
+    <div class="element-meta">
+      <div class="el-name" id="elName">صوديوم (Sodium)</div>
+      <div class="el-status" id="elStatus" style="color: #10b981;">ذرة متعادلة كهربائياً</div>
+    </div>
+    <div class="symbol-box">
+      <span id="symLetter">Na</span>
+      <span class="mass-num" id="symMass">23</span>
+      <span class="atomic-num" id="symAtomic">11</span>
+      <span class="charge-badge" id="symCharge" style="color: #94a3b8;">0</span>
+    </div>
+  </div>
+
+  <!-- منطقة رسم الذرة والمدارات -->
+  <div class="canvas-wrapper">
+    <canvas id="simCanvas" width="440" height="340"></canvas>
+  </div>
+
+  <!-- أزرار العناصر المنهجية الجاهزة -->
+  <div class="elements-bar" id="elementsBar"></div>
+
+  <!-- عدادات البروتونات والنيوترونات والإلكترونات -->
+  <div class="counters-grid">
+    <div class="counter-card">
+      <span class="counter-label" style="color: #f87171;">البروتونات (p⁺)</span>
+      <span class="counter-val" id="countP" style="color: #f87171;">11</span>
+      <div class="btn-group">
+        <button class="ctrl-btn btn-p" onclick="changeParticle('p', -1)">-</button>
+        <button class="ctrl-btn btn-p" onclick="changeParticle('p', 1)">+</button>
+      </div>
+    </div>
+
+    <div class="counter-card">
+      <span class="counter-label" style="color: #94a3b8;">النيوترونات (n⁰)</span>
+      <span class="counter-val" id="countN" style="color: #94a3b8;">12</span>
+      <div class="btn-group">
+        <button class="ctrl-btn btn-n" onclick="changeParticle('n', -1)">-</button>
+        <button class="ctrl-btn btn-n" onclick="changeParticle('n', 1)">+</button>
+      </div>
+    </div>
+
+    <div class="counter-card">
+      <span class="counter-label" style="color: #38bdf8;">الإلكترونات (e⁻)</span>
+      <span class="counter-val" id="countE" style="color: #38bdf8;">11</span>
+      <div class="btn-group">
+        <button class="ctrl-btn btn-e" onclick="changeParticle('e', -1)">-</button>
+        <button class="ctrl-btn btn-e" onclick="changeParticle('e', 1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- أدوات التفاعل السريع -->
+  <div class="quick-actions">
+    <button class="action-btn" onclick="makeNeutral()">⚡ معادلة الذرة (e⁻ = p⁺)</button>
+    <button class="action-btn" onclick="makeStableIon()">✨ تحويل لأيون مستقر</button>
+    <button class="action-btn" onclick="resetToHydrogen()">🔄 إعادة ضبط (H)</button>
+  </div>
+
+  <!-- صندوق الشرح العلمي المحدث تلقائياً -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">التوزيع الإلكتروني للمدارات:</div>
+    <div id="infoText">جاري الحساب...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // المتغيرات الجسيمية الحالية (الافتراضي: صوديوم Na-23)
+  let protons = 11;
+  let neutrons = 12;
+  let electrons = 11;
+
+  // عناصر المنهج المحددة (من 1 إلى 18 إلكترون)
+  const curriculumElements = [
+    { z: 1, sym: "H", name: "هيدروجين", n: 0 },
+    { z: 2, sym: "He", name: "هيليوم", n: 2 },
+    { z: 3, sym: "Li", name: "ليثيوم", n: 4 },
+    { z: 4, sym: "Be", name: "بريليوم", n: 5 },
+    { z: 5, sym: "B", name: "بورون", n: 6 },
+    { z: 6, sym: "C", name: "كاربون", n: 6 },
+    { z: 7, sym: "N", name: "نتروجين", n: 7 },
+    { z: 8, sym: "O", name: "أوكسجين", n: 8 },
+    { z: 9, sym: "F", name: "فلور", n: 10 },
+    { z: 10, sym: "Ne", name: "نيون", n: 10 },
+    { z: 11, sym: "Na", name: "صوديوم", n: 12 },
+    { z: 12, sym: "Mg", name: "مغنيسيوم", n: 12 },
+    { z: 13, sym: "Al", name: "ألمنيوم", n: 14 },
+    { z: 14, sym: "Si", name: "سيليكون", n: 14 },
+    { z: 15, sym: "P", name: "فسفور", n: 16 },
+    { z: 16, sym: "S", name: "كبريت", n: 16 },
+    { z: 17, sym: "Cl", name: "كلور", n: 18 },
+    { z: 18, sym: "Ar", name: "آرغون", n: 22 }
+  ];
+
+  // توليد أزرار العناصر المنهجية
+  const bar = document.getElementById("elementsBar");
+  curriculumElements.forEach(el => {
+    const chip = document.createElement("button");
+    chip.className = `el-chip ${el.z === 11 ? 'active' : ''}`;
+    chip.id = `chip-${el.z}`;
+    chip.innerText = `${el.sym} (${el.z})`;
+    chip.onclick = () => loadElementPreset(el);
+    bar.appendChild(chip);
+  });
+
+  // الصوت التفاعلي عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playTone(freq, duration = 0.08) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + duration);
+  }
+
+  function loadElementPreset(el) {
+    protons = el.z;
+    neutrons = el.n;
+    electrons = el.z;
+    playTone(520, 0.12);
+    updateUI();
+  }
+
+  function changeParticle(type, delta) {
+    if (type === 'p') protons = Math.max(1, Math.min(18, protons + delta));
+    if (type === 'n') neutrons = Math.max(0, Math.min(24, neutrons + delta));
+    if (type === 'e') electrons = Math.max(0, Math.min(18, electrons + delta));
+    playTone(type === 'p' ? 440 : (type === 'e' ? 660 : 330));
+    updateUI();
+  }
+
+  function makeNeutral() {
+    electrons = protons;
+    playTone(587, 0.15);
+    updateUI();
+  }
+
+  function makeStableIon() {
+    // تحديد أقرب توزيع إلكتروني خامل (2 أو 10 أو 18)
+    if (electrons <= 5) electrons = 2;       // مثل تشبع الهيليوم
+    else if (electrons <= 13) electrons = 10; // مثل تشبع النيون
+    else electrons = 18;                     // مثل تشبع الآرغون
+    playTone(784, 0.2);
+    updateUI();
+  }
+
+  function resetToHydrogen() {
+    protons = 1; neutrons = 0; electrons = 1;
+    playTone(392);
+    updateUI();
+  }
+
+  // توزيع الإلكترونات على المدارات الثلاثة (سعة 2، 8، 8)
+  function getOrbitsConfig() {
+    let e = electrons;
+    let o1 = Math.min(e, 2);
+    let o2 = Math.min(Math.max(0, e - 2), 8);
+    let o3 = Math.min(Math.max(0, e - 10), 8);
+    return { o1, o2, o3 };
+  }
+
+  function updateUI() {
+    // 1. تحديث العدادات
+    document.getElementById("countP").innerText = protons;
+    document.getElementById("countN").innerText = neutrons;
+    document.getElementById("countE").innerText = electrons;
+
+    // 2. تحديث هوية العنصر والرمز
+    const el = curriculumElements.find(item => item.z === protons) || { sym: "?", name: "عنصر مجهول" };
+    document.getElementById("symLetter").innerText = el.sym;
+    document.getElementById("elName").innerText = `${el.name} (${el.sym})`;
+    document.getElementById("symAtomic").innerText = protons;
+    document.getElementById("symMass").innerText = protons + neutrons;
+
+    // تحديث شريط العناصر
+    document.querySelectorAll(".el-chip").forEach(c => c.classList.remove("active"));
+    const activeChip = document.getElementById(`chip-${protons}`);
+    if (activeChip) activeChip.classList.add("active");
+
+    // 3. احتساب الشحنة وحالة التأين
+    const netCharge = protons - electrons;
+    const chargeBadge = document.getElementById("symCharge");
+    const statusText = document.getElementById("elStatus");
+
+    if (netCharge === 0) {
+      chargeBadge.innerText = "0";
+      chargeBadge.style.color = "#94a3b8";
+      statusText.innerText = "ذرة متعادلة كهربائياً (p⁺ = e⁻)";
+      statusText.style.color = "#10b981";
+    } else if (netCharge > 0) {
+      chargeBadge.innerText = `+${netCharge}`;
+      chargeBadge.style.color = "#ef4444";
+      statusText.innerText = `أيون موجب (${netCharge}+) لفقدان إلكترون أو أكثر`;
+      statusText.style.color = "#ef4444";
+    } else {
+      chargeBadge.innerText = `${netCharge}`;
+      chargeBadge.style.color = "#38bdf8";
+      statusText.innerText = `أيون سالب (${Math.abs(netCharge)}-) لاكتساب إلكترون أو أكثر`;
+      statusText.style.color = "#38bdf8";
+    }
+
+    // 4. تحديث الشرح العلمي والتوزيع الإلكتروني
+    const { o1, o2, o3 } = getOrbitsConfig();
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+
+    infoTitle.innerText = `التوزيع الإلكتروني: [المدار 1: ${o1}/2] • [المدار 2: ${o2}/8] • [المدار 3: ${o3}/8]`;
+
+    let outerShellDesc = "";
+    if (electrons <= 2) outerShellDesc = o1 === 2 ? "<b>المدار الأول مشبع ومستقر بالكامل (2e⁻).</b>" : "المدار الأول غير ممتلئ.";
+    else if (electrons <= 10) outerShellDesc = o2 === 8 ? "<b>المدار الثاني مشبع ومستقر بالكامل بنظام الثمانية (8e⁻).</b>" : `المدار الخارجي يحتوي ${o2} إلكترونات تكافؤ.`;
+    else outerShellDesc = o3 === 8 ? "<b>المدار الثالث مشبع ومستقر بالكامل (8e⁻).</b>" : `المدار الخارجي يحتوي ${o3} إلكترونات تكافؤ.`;
+
+    infoText.innerHTML = `
+      العدد الذري: <b>Z = ${protons}</b> | العدد الكتلي: <b>A = ${protons + neutrons}</b>.<br>
+      ${outerShellDesc}
+    `;
+  }
+
+  // --- محرك الرسم والتحريك للذرة ---
+  let angleRing1 = 0;
+  let angleRing2 = 0;
+  let angleRing3 = 0;
+
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const centerX = 220, centerY = 170;
+
+    // المدارات الدائرية (نصف القطر: 55px, 95px, 135px)
+    const radii = [55, 95, 135];
+    const { o1, o2, o3 } = getOrbitsConfig();
+
+    // رسم المدارات
+    radii.forEach((r, idx) => {
+      ctx.save();
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.22)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.arc(centerX, centerY, r, 0, Math.PI * 2); ctx.stroke();
+
+      // رقم المدار
+      ctx.fillStyle = "rgba(148, 163, 184, 0.4)";
+      ctx.font = "bold 10px monospace";
+      ctx.fillText(`مدار ${idx + 1}`, centerX + r - 12, centerY - 4);
+      ctx.restore();
+    });
+
+    // 1. رسم النواة في المركز
+    drawNucleus(centerX, centerY);
+
+    // 2. تدوير ورسم الإلكترونات على المدارات
+    angleRing1 += 0.02;
+    angleRing2 -= 0.015;
+    angleRing3 += 0.01;
+
+    drawElectronsOnOrbit(centerX, centerY, radii[0], o1, angleRing1);
+    drawElectronsOnOrbit(centerX, centerY, radii[1], o2, angleRing2);
+    drawElectronsOnOrbit(centerX, centerY, radii[2], o3, angleRing3);
+
+    requestAnimationFrame(render);
+  }
+
+  // رسم عنقود البروتونات والنيوترونات في النواة
+  function drawNucleus(cx, cy) {
+    ctx.save();
+    // هالة النواة
+    const nucGrad = ctx.createRadialGradient(cx, cy, 5, cx, cy, 32);
+    nucGrad.addColorStop(0, "rgba(239, 68, 68, 0.35)");
+    nucGrad.addColorStop(1, "transparent");
+    ctx.fillStyle = nucGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, 32, 0, Math.PI * 2); ctx.fill();
+
+    // تمثيل كرات الجسيمات داخل النواة بطريقة متناسقة
+    const totalNucleons = protons + neutrons;
+    const clusterRadius = Math.min(22, 10 + Math.sqrt(totalNucleons) * 2.5);
+
+    // رسم النواة ككرة مركزية مجمعة
+    ctx.fillStyle = "#1e293b"; ctx.strokeStyle = "#475569"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx, cy, clusterRadius, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    // نص داخل النواة
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 10px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("النواة", cx, cy - 3);
+    ctx.font = "bold 9px monospace";
+    ctx.fillStyle = "#f87171"; ctx.fillText(`${protons}p⁺`, cx - 8, cy + 9);
+    ctx.fillStyle = "#94a3b8"; ctx.fillText(`${neutrons}n⁰`, cx + 8, cy + 9);
+    ctx.restore();
+  }
+
+  // رسم وتوزيع الإلكترونات على مدار محدد
+  function drawElectronsOnOrbit(cx, cy, radius, count, currentAngle) {
+    for (let i = 0; i < count; i++) {
+      const theta = currentAngle + (i * (Math.PI * 2 / count));
+      const ex = cx + Math.cos(theta) * radius;
+      const ey = cy + Math.sin(theta) * radius;
+
+      ctx.save();
+      // توهج أزرق للإلكترون
+      const eGrad = ctx.createRadialGradient(ex, ey, 1, ex, ey, 7);
+      eGrad.addColorStop(0, "#ffffff");
+      eGrad.addColorStop(0.3, "#38bdf8");
+      eGrad.addColorStop(1, "#0284c7");
+      ctx.fillStyle = eGrad;
+      ctx.beginPath(); ctx.arc(ex, ey, 5.5, 0, Math.PI * 2); ctx.fill();
+
+      // علامة السالب داخل الإلكترون
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 9px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("-", ex, ey - 0.5);
+      ctx.restore();
+    }
+  }
+
+  updateUI();
+  requestAnimationFrame(render);
+</script>
+</body>
+</html>
