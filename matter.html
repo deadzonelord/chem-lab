@@ -3,206 +3,116 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>محاكاة حالات المادة والتسخين | أ. حسين التميمي</title>
+  <title>المختبر الجزيئي لحالات المادة | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; }
     body {
-      margin: 0;
-      padding: 12px;
-      background-color: #0b0f19;
-      color: #e2e8f0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
+      background-color: #070b12; color: #f1f5f9;
+      font-family: 'Cairo', system-ui, sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh; padding: 10px;
     }
-    .container {
-      width: 100%;
-      max-width: 440px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-    }
+    .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 8px; }
 
-    /* زر الرجوع للخلف */
-    .top-nav {
-      width: 100%;
-      display: flex;
-      justify-content: flex-start;
-      margin-bottom: 2px;
-    }
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
     .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #1e293b;
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      padding: 6px 14px;
-      border-radius: 99px;
-      text-decoration: none;
-      font-size: 13px;
-      font-weight: bold;
-      transition: background 0.15s, transform 0.15s;
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 12px; font-weight: bold;
     }
-    .back-btn:active {
-      transform: scale(0.96);
-      background: #334155;
-    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
 
-    .header {
+    .header { text-align: center; }
+    .header h1 { font-size: 17px; color: #38bdf8; font-weight: 800; }
+    .header p { font-size: 11px; color: #94a3b8; }
+
+    /* لوحة القياسات الرقمية الحية */
+    .telemetry-bar {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+      background: #0f172a; border: 1px solid #1e293b; padding: 6px 10px; border-radius: 10px;
       text-align: center;
-      margin-top: 2px;
     }
-    .header h1 {
-      font-size: 18px;
-      margin: 0;
-      color: #38bdf8;
-    }
-    .header p {
-      font-size: 11.5px;
-      color: #94a3b8;
-      margin: 3px 0 0 0;
-    }
-    .canvas-wrapper {
-      position: relative;
-      width: 100%;
-      background: #111827;
-      border-radius: 14px;
-      border: 1px solid #1f2937;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-      overflow: hidden;
+    .tel-item { display: flex; flex-direction: column; }
+    .tel-lbl { font-size: 9.5px; color: #64748b; font-weight: 700; }
+    .tel-val { font-size: 13.5px; font-weight: 800; font-family: monospace; }
+    .val-temp { color: #f59e0b; }
+    .val-press { color: #38bdf8; }
+    .val-state { color: #10b981; }
+
+    /* مسرح الكانفاس عالي الدقة */
+    .canvas-card {
+      position: relative; width: 100%; background: #0b1120;
+      border: 1px solid #1e293b; border-radius: 14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.6); overflow: hidden;
+      display: flex; flex-direction: column; align-items: center;
     }
     canvas {
-      display: block;
-      width: 100%;
-      height: auto;
+      display: block; width: 100%; height: 350px;
+      touch-action: none; cursor: grab;
     }
-    .controls-panel {
-      width: 100%;
-      background: #1e293b;
-      padding: 14px;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      border: 1px solid #334155;
+    canvas:active { cursor: grabbing; }
+
+    /* أزرار الحالات السريعة */
+    .presets-row {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; width: 100%;
     }
-    .slider-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 13px;
-      font-weight: 600;
+    .preset-btn {
+      background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; text-align: center;
     }
-    .temp-value {
-      font-size: 15px;
-      font-weight: bold;
-      color: #fbbf24;
-      direction: ltr;
-    }
-    input[type=range] {
-      -webkit-appearance: none;
-      width: 100%;
-      height: 8px;
-      border-radius: 4px;
-      background: linear-gradient(to right, #38bdf8, #10b981, #f59e0b, #ef4444);
-      outline: none;
-      margin: 6px 0;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: #f8fafc;
-      cursor: pointer;
-      box-shadow: 0 0 8px rgba(0,0,0,0.6);
-      border: 2px solid #0284c7;
-    }
-    .preset-buttons {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-    }
-    button {
-      background: #334155;
-      color: #f1f5f9;
-      border: 1px solid #475569;
-      padding: 8px 0;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    button:active {
-      transform: scale(0.96);
-    }
-    button.active {
-      background: #0284c7;
-      border-color: #38bdf8;
-      color: #ffffff;
-    }
+    .preset-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+    .preset-btn:active { transform: scale(0.96); }
+
+    /* بطاقة الشرح العلمي التفاعلية */
     .info-card {
-      width: 100%;
-      background: #0f172a;
-      border-right: 4px solid #38bdf8;
-      border-radius: 8px;
-      padding: 10px 12px;
-      font-size: 12.5px;
-      line-height: 1.6;
-      min-height: 80px;
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 8px 12px; font-size: 11.5px; line-height: 1.5;
     }
-    .info-title {
-      font-weight: bold;
-      color: #38bdf8;
-      margin-bottom: 3px;
-      font-size: 13px;
-    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- شريط الرجوع للقائمة الرئيسية -->
-  <div class="top-nav">
-    <a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a>
-  </div>
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ العودة للقائمة</a></div>
 
   <div class="header">
-    <h1>محاكاة الديناميكا الحرارية للمادة</h1>
-    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+    <h1>المختبر الجزيئي لحالات المادة</h1>
+    <p>إشراف: أ. حسين التميمي • فيزياء جسيمات حرة ومكبس تفاعلي</p>
   </div>
 
-  <div class="canvas-wrapper">
-    <canvas id="simCanvas" width="400" height="370"></canvas>
-  </div>
-
-  <div class="controls-panel">
-    <div class="slider-header">
-      <span>مستوى التسخين (الحرارة):</span>
-      <span class="temp-value" id="tempDisplay">-30 °C | 243 K</span>
+  <div class="telemetry-bar">
+    <div class="tel-item">
+      <span class="tel-lbl">درجة الحرارة</span>
+      <span class="tel-val val-temp" id="telTemp">120 K (-153°C)</span>
     </div>
-    
-    <input type="range" id="tempSlider" min="-50" max="150" value="-30" step="1">
-
-    <div class="preset-buttons">
-      <button id="btnSolid" onclick="setPreset(-30)">صلبة (ثلج)</button>
-      <button id="btnLiquid" onclick="setPreset(45)">سائلة (ماء)</button>
-      <button id="btnGas" onclick="setPreset(125)">غازية (بخار)</button>
+    <div class="tel-item">
+      <span class="tel-lbl">الضغط الجزيئي</span>
+      <span class="tel-val val-press" id="telPress">0.8 atm</span>
+    </div>
+    <div class="tel-item">
+      <span class="tel-lbl">الحالة الفيزيائية</span>
+      <span class="tel-val val-state" id="telState">صلبة (بلورية)</span>
     </div>
   </div>
 
-  <div class="info-card" id="infoCard">
-    <div class="info-title" id="infoTitle">الحالة الصلبة (Solid State)</div>
-    <div id="infoText">جاري تحميل البيانات الفيزيائية...</div>
+  <div class="canvas-card">
+    <canvas id="simCanvas"></canvas>
+  </div>
+
+  <div class="presets-row">
+    <button class="preset-btn active" id="btnSolid" onclick="setPresetState('solid')">🧊 حالة صلبة</button>
+    <button class="preset-btn" id="btnLiquid" onclick="setPresetState('liquid')">💧 حالة سائلة</button>
+    <button class="preset-btn" id="btnGas" onclick="setPresetState('gas')">💨 حالة غازية</button>
+  </div>
+
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">سلوك الجسيمات في الحالة الصلبة:</div>
+    <div id="infoText">
+      تهتز الجسيمات في مواضع ثابتة داخل شبكة بلورية متراصة بفعل قوى التجاذب الشديدة؛ مما يمنحها شكلاً وحجماً ثابتين. يمكنك سحب المكبس أو رفع درجة حرارة الموقد لمشاهدة تحول الطور.
+    </div>
   </div>
 </div>
 
@@ -210,280 +120,454 @@
   const canvas = document.getElementById("simCanvas");
   const ctx = canvas.getContext("2d");
 
-  const slider = document.getElementById("tempSlider");
-  const tempDisplay = document.getElementById("tempDisplay");
-  const infoTitle = document.getElementById("infoTitle");
-  const infoText = document.getElementById("infoText");
+  // هندسة أبعاد الكانفاس ودقة Retina
+  let width = 0, height = 0, dpr = 1;
 
-  const box = {
-    x: 45,
-    y: 35,
-    width: 310,
-    height: 250,
-    bottom: 285
+  function resizeCanvas() {
+    dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    width = rect.width;
+    height = rect.height;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
+  }
+
+  // معايير الوعاء والفيزياء
+  const BEAKER = {
+    x: 0, y: 35, w: 260, h: 220,
+    wallThick: 5,
+    glassColor: "rgba(255, 255, 255, 0.15)",
+    glareColor: "rgba(255, 255, 255, 0.4)"
   };
 
-  const PARTICLE_COUNT = 45;
-  const PARTICLE_RADIUS = 9.5;
+  // المكبس الضاغط (Interactive Piston)
+  const PISTON = {
+    y: 70, minY: 55, maxY: 175,
+    handleH: 14, isDragging: false
+  };
+
+  // الموقد الحراري السفلي (Interactive Burner Lever)
+  const BURNER = {
+    sliderY: 300, isDragging: false, heatLevel: 0 // -1 (تبريد شديد) إلى +1 (تسخين عالي)
+  };
+
+  // محرك الجسيمات الحرة
+  const PARTICLE_COUNT = 64;
+  const PARTICLE_RADIUS = 7.5;
   const particles = [];
+  let currentTemp = 120; // كلفن
+  let pressureAccumulator = 0;
+  let measuredPressure = 0.8;
 
-  const COLS = 9;
-  const ROWS = 5;
-  const spacingX = 26;
-  const spacingY = 24;
-  const latticeStartX = box.x + (box.width - (COLS - 1) * spacingX) / 2;
-  const latticeStartY = box.bottom - (ROWS - 1) * spacingY - 14;
-
-  let currentTemp = parseFloat(slider.value);
-
-  let idx = 0;
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      if (idx < PARTICLE_COUNT) {
-        const lx = latticeStartX + c * spacingX;
-        const ly = latticeStartY + r * spacingY;
-        particles.push({
-          x: lx,
-          y: ly,
-          vx: (Math.random() - 0.5) * 0.5,
-          vy: (Math.random() - 0.5) * 0.5,
-          lx: lx,
-          ly: ly,
-          phase: Math.random() * Math.PI * 2
-        });
-        idx++;
-      }
-    }
-  }
-
-  function setPreset(t) {
-    slider.value = t;
-    updateState();
-  }
-
-  function updateState() {
-    currentTemp = parseFloat(slider.value);
-    const kelvin = Math.round(currentTemp + 273.15);
-    tempDisplay.textContent = `${currentTemp >= 0 ? '+' : ''}${currentTemp} °C | ${kelvin} K`;
-
-    document.getElementById("btnSolid").className = currentTemp < 0 ? "active" : "";
-    document.getElementById("btnLiquid").className = (currentTemp >= 0 && currentTemp < 100) ? "active" : "";
-    document.getElementById("btnGas").className = currentTemp >= 100 ? "active" : "";
-
-    if (currentTemp < 0) {
-      infoTitle.textContent = "الحالة الصلبة (Solid Phase)";
-      infoTitle.style.color = "#38bdf8";
-      infoText.innerHTML = "<b>قوى التماسك الجزيئي تتفوق على الطاقة الحركية:</b> الجزيئات مقيدة بشبكة بلورية وتتحرك باهتزاز موضعي متوافق. الشكل والحجم ثابتان.";
-    } else if (currentTemp < 100) {
-      infoTitle.textContent = "الحالة السائلة (Liquid Phase)";
-      infoTitle.style.color = "#34d399";
-      infoText.innerHTML = "<b>توازن ديناميكي بين الحركة وقوى التماسك:</b> تكسر النظام البلوري؛ تنزلق الجزيئات فوق بعضها في قاع الإناء. الحجم ثابت والشكل متغير.";
-    } else {
-      infoTitle.textContent = "الحالة الغازية (Gas Phase)";
-      infoTitle.style.color = "#f87171";
-      infoText.innerHTML = "<b>الطاقة الحركية تكتسح قوى التجاذب بالكامل:</b> انعدام التجاذب بين الجزيئات؛ سرعات عشوائية هائلة تملأ كامل الوعاء وتولد الضغط بالتصادم.";
-    }
-  }
-
-  slider.addEventListener("input", updateState);
-  updateState();
-
-  function updatePhysics() {
-    const isSolid = currentTemp < 0;
-    const isLiquid = currentTemp >= 0 && currentTemp < 100;
-    const isGas = currentTemp >= 100;
-
-    const kelvin = currentTemp + 273.15;
-    const targetSpeed = Math.sqrt(kelvin) * 0.28;
-
-    particles.forEach((p, i) => {
-      if (isSolid) {
-        const vibAmp = Math.max(0.6, (currentTemp + 50) / 10);
-        p.phase += 0.25 + (currentTemp + 50) * 0.005;
-        const targetX = p.lx + Math.sin(p.phase) * vibAmp;
-        const targetY = p.ly + Math.cos(p.phase * 1.3) * vibAmp;
-
-        p.x += (targetX - p.x) * 0.25;
-        p.y += (targetY - p.y) * 0.25;
-        p.vx = 0;
-        p.vy = 0;
-      } 
-      else if (isLiquid) {
-        p.vy += 0.16;
-        const liquidTop = box.bottom - 110 - (currentTemp * 0.35);
-        if (p.y < liquidTop) { p.y = liquidTop; p.vy *= -0.5; }
-
-        p.vx += (Math.random() - 0.5) * targetSpeed * 0.45;
-        p.vy += (Math.random() - 0.5) * targetSpeed * 0.45;
-        p.vx *= 0.93;
-        p.vy *= 0.93;
-
-        p.x += p.vx;
-        p.y += p.vy;
-      } 
-      else {
-        const currentSpeed = Math.hypot(p.vx, p.vy) || 0.1;
-        p.vx = (p.vx / currentSpeed) * targetSpeed + (Math.random() - 0.5) * 0.4;
-        p.vy = (p.vy / currentSpeed) * targetSpeed + (Math.random() - 0.5) * 0.4;
-
-        p.x += p.vx;
-        p.y += p.vy;
-      }
-
-      const minX = box.x + PARTICLE_RADIUS + 4;
-      const maxX = box.x + box.width - PARTICLE_RADIUS - 4;
-      const minY = isGas ? box.y + PARTICLE_RADIUS + 4 : box.y;
-      const maxY = box.bottom - PARTICLE_RADIUS - 2;
-
-      if (p.x < minX) { p.x = minX; p.vx = Math.abs(p.vx); }
-      if (p.x > maxX) { p.x = maxX; p.vx = -Math.abs(p.vx); }
-      if (p.y > maxY) { p.y = maxY; p.vy = -Math.abs(p.vy) * 0.8; }
-      if (isGas && p.y < minY) { p.y = minY; p.vy = Math.abs(p.vy); }
-
-      if (!isSolid) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dx = p2.x - p.x;
-          const dy = p2.y - p.y;
-          const dist = Math.hypot(dx, dy);
-          const minDist = PARTICLE_RADIUS * 2;
-
-          if (dist < minDist && dist > 0) {
-            const overlap = (minDist - dist) / 2;
-            const nx = dx / dist;
-            const ny = dy / dist;
-
-            p.x -= nx * overlap * 0.6;
-            p.y -= ny * overlap * 0.6;
-            p2.x += nx * overlap * 0.6;
-            p2.y += ny * overlap * 0.6;
-
-            if (isGas) {
-              const kx = p.vx - p2.vx;
-              const ky = p.vy - p2.vy;
-              const p_val = 2 * (nx * kx + ny * ky) / 2;
-              p.vx -= p_val * nx;
-              p.vy -= p_val * ny;
-              p2.vx += p_val * nx;
-              p2.vy += p_val * ny;
-            }
-          }
-        }
-      }
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    particles.push({
+      x: 0, y: 0,
+      vx: 0, vy: 0,
+      ax: 0, ay: 0,
+      radius: PARTICLE_RADIUS,
+      isHeld: false
     });
   }
 
+  // تهيئة الشبكة البلورية الصلبة في قاع الدورق
+  function initSolidLattice() {
+    const cols = 8;
+    const startX = BEAKER.x + 35;
+    const startY = BEAKER.y + BEAKER.h - 85;
+    const spacing = PARTICLE_RADIUS * 2.15;
+
+    particles.forEach((p, idx) => {
+      const c = idx % cols;
+      const r = Math.floor(idx / cols);
+      p.x = startX + c * spacing + (r % 2 === 1 ? PARTICLE_RADIUS : 0);
+      p.y = startY + r * spacing;
+      p.vx = (Math.random() - 0.5) * 0.2;
+      p.vy = (Math.random() - 0.5) * 0.2;
+    });
+  }
+
+  function setPresetState(state) {
+    document.querySelectorAll(".preset-btn").forEach(b => b.classList.remove("active"));
+    if (state === 'solid') {
+      document.getElementById("btnSolid").classList.add("active");
+      currentTemp = 90;
+      PISTON.y = 80;
+      initSolidLattice();
+    } else if (state === 'liquid') {
+      document.getElementById("btnLiquid").classList.add("active");
+      currentTemp = 280;
+      PISTON.y = 95;
+    } else {
+      document.getElementById("btnGas").classList.add("active");
+      currentTemp = 480;
+      PISTON.y = 65;
+    }
+    updateTelemetry();
+  }
+
+  // محرك التصادم والقوى الجزيئية (Lennard-Jones Approximation)
+  function updatePhysics() {
+    const floorY = BEAKER.y + BEAKER.h - PARTICLE_RADIUS - 2;
+    const ceilingY = PISTON.y + PARTICLE_RADIUS + 4;
+    const leftX = BEAKER.x + PARTICLE_RADIUS + 3;
+    const rightX = BEAKER.x + BEAKER.w - PARTICLE_RADIUS - 3;
+
+    // معامل سرعة اهتزاز الجسيمات حسب الحرارة
+    const thermalSpeed = Math.sqrt(currentTemp / 120);
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const p1 = particles[i];
+      if (p1.isHeld) continue;
+
+      // جاذبية خفيفة للأسفل في الحالات السائلة والصلبة
+      if (currentTemp < 370) {
+        p1.vy += 0.08;
+      }
+
+      // قوى التجاذب والتنافر بين أزواج الجسيمات
+      for (let j = i + 1; j < PARTICLE_COUNT; j++) {
+        const p2 = particles[j];
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dist = Math.hypot(dx, dy);
+        const minDist = PARTICLE_RADIUS * 2;
+
+        if (dist < minDist && dist > 0.01) {
+          // تصادم مرن ودفع متبادل
+          const overlap = (minDist - dist) / 2;
+          const nx = dx / dist;
+          const ny = dy / dist;
+
+          p1.x -= nx * overlap;
+          p1.y -= ny * overlap;
+          p2.x += nx * overlap;
+          p2.y += ny * overlap;
+
+          // تبادل كمية الحركة
+          const kx = p1.vx - p2.vx;
+          const ky = p1.vy - p2.vy;
+          const p = 2 * (nx * kx + ny * ky) / 2;
+
+          p1.vx -= p * nx;
+          p1.vy -= p * ny;
+          p2.vx += p * nx;
+          p2.vy += p * ny;
+
+          // قوى التماسك في درجات الحرارة المنخفضة (Lattice bond attraction)
+          if (currentTemp < 200 && dist > minDist * 0.9) {
+            const pull = 0.015;
+            p1.vx += nx * pull; p1.vy += ny * pull;
+            p2.vx -= nx * pull; p2.vy -= ny * pull;
+          }
+        }
+      }
+
+      // إضافة إثارة حرارية عشوائية للجسيمات
+      p1.vx += (Math.random() - 0.5) * 0.15 * thermalSpeed;
+      p1.vy += (Math.random() - 0.5) * 0.15 * thermalSpeed;
+
+      // كبح طفيف لضبط ثبات النظام
+      p1.vx *= 0.985;
+      p1.vy *= 0.985;
+
+      p1.x += p1.vx;
+      p1.y += p1.vy;
+
+      // تصادم مع الجدران والأرضية والمكبس العلوي مع تسجيل الضغط
+      if (p1.x < leftX) { p1.x = leftX; p1.vx = Math.abs(p1.vx) * 0.9; pressureAccumulator += Math.abs(p1.vx); }
+      if (p1.x > rightX) { p1.x = rightX; p1.vx = -Math.abs(p1.vx) * 0.9; pressureAccumulator += Math.abs(p1.vx); }
+      if (p1.y > floorY) { p1.y = floorY; p1.vy = -Math.abs(p1.vy) * 0.8; pressureAccumulator += Math.abs(p1.vy); }
+      if (p1.y < ceilingY) { p1.y = ceilingY; p1.vy = Math.abs(p1.vy) * 0.9; pressureAccumulator += Math.abs(p1.vy); }
+    }
+
+    // تأثير الموقد الحراري السلس على درجة الحرارة
+    if (BURNER.heatLevel !== 0) {
+      currentTemp = Math.max(50, Math.min(650, currentTemp + BURNER.heatLevel * 1.5));
+    }
+  }
+
+  // دورة قياس الضغط وتحديث الشاشة كل نصف ثانية
+  setInterval(() => {
+    const volumeRatio = (BEAKER.h - (PISTON.y - BEAKER.y)) / BEAKER.h;
+    measuredPressure = Math.max(0.2, (pressureAccumulator * 0.04) / Math.max(0.3, volumeRatio));
+    pressureAccumulator = 0;
+    updateTelemetry();
+  }, 400);
+
+  function updateTelemetry() {
+    const tC = Math.round(currentTemp - 273.15);
+    document.getElementById("telTemp").innerText = `${Math.round(currentTemp)} K (${tC > 0 ? '+' : ''}${tC}°C)`;
+    document.getElementById("telPress").innerText = `${measuredPressure.toFixed(2)} atm`;
+
+    const stateEl = document.getElementById("telState");
+    const infoTitle = document.getElementById("infoTitle");
+    const infoText = document.getElementById("infoText");
+
+    if (currentTemp < 180) {
+      stateEl.innerText = "صلبة (بلورية)";
+      stateEl.style.color = "#38bdf8";
+      infoTitle.innerText = "الحالة الصلبة (طاقة حركية منخفضة):";
+      infoText.innerHTML = "قوى التجاذب الجزيئي تتغلب على الطاقة الحركية، فتحافظ الجسيمات على ترتيب منتظم وشكل ثابت مع اهتزاز موضعي طفيف.";
+    } else if (currentTemp < 370) {
+      stateEl.innerText = "سائلة (جريان)";
+      stateEl.style.color = "#10b981";
+      infoTitle.innerText = "الحالة السائلة (طاقة حركية متوسطة):";
+      infoText.innerHTML = "تكتسب الجسيمات حرارة كافية لكسر الشبكة البلورية الصلبة فتنزلق وتتحرك فوق بعضها بحرية؛ مما يمنحها حجماً ثابتاً وشكلاً متغيراً يأخذ شكل الإناء.";
+    } else {
+      stateEl.innerText = "غازية (انتشار حر)";
+      stateEl.style.color = "#f59e0b";
+      infoTitle.innerText = "الحالة الغازية (طاقة حركية عظمى):";
+      infoText.innerHTML = "تتفوق الطاقة الحركية تماماً على قوى التجاذب، فتنطلق الجسيمات بعشوائية وسرعات عالية تملأ كامل الحيز المتاح وتتصادم بقوة مع المكبس والجدران مسببة زيادة الضغط.";
+    }
+  }
+
+  // --- محرك الرسم الفائق للزجاج والمكبس والجسيمات ---
   function render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, width, height);
+
+    BEAKER.x = (width - BEAKER.w) / 2;
+
+    // 1. رسم المكبس الضاغط (Piston Handle & Shaft)
+    drawPiston();
+
+    // 2. رسم الكأس الزجاجي بتأثير Retina الشفاف
+    drawBeaker();
+
+    // 3. رسم الجسيمات الذرية بتأثير العمق
+    drawParticles();
+
+    // 4. رسم موقد التبريد والتسخين السفلي
+    drawBurnerControls();
+
+    requestAnimationFrame(render);
+  }
+
+  function drawBeaker() {
+    const x = BEAKER.x, y = BEAKER.y, w = BEAKER.w, h = BEAKER.h;
 
     ctx.save();
-    ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(box.x, box.y, box.width, box.height);
+    // زجاج الكأس والظلال
+    ctx.fillStyle = "rgba(15, 23, 42, 0.45)";
+    ctx.fillRect(x, y, w, h);
 
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(box.x - 6, box.y - 6, box.width + 12, 10);
-    ctx.fillStyle = "#64748b";
-    ctx.fillRect(box.x + box.width / 2 - 15, box.y - 14, 30, 8);
+    // حواف الزجاج السميكة
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = BEAKER.wallThick;
+    ctx.beginPath();
+    ctx.moveTo(x - 6, y);
+    ctx.lineTo(x, y);
+    ctx.lineTo(x, y + h);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x + w, y);
+    ctx.lineTo(x + w + 6, y);
+    ctx.stroke();
 
-    ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
-    ctx.fillRect(box.x, box.y, box.width, box.height);
+    // بريق وانعكاس زجاجي طولي ناعم
+    const glareGrad = ctx.createLinearGradient(x, y, x + 35, y);
+    glareGrad.addColorStop(0, "rgba(255,255,255,0.22)");
+    glareGrad.addColorStop(1, "transparent");
+    ctx.fillStyle = glareGrad;
+    ctx.fillRect(x + 3, y, 35, h);
+
+    // تدريجات الحجم المخبرية (100ml, 200ml, 300ml)
+    ctx.fillStyle = "rgba(255,255,255,0.45)";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "left";
+    for (let m = 1; m <= 4; m++) {
+      const my = y + h - m * 42;
+      ctx.fillRect(x + 4, my, 12, 1.5);
+      ctx.fillText(`${m * 100}ml`, x + 20, my + 3);
+    }
     ctx.restore();
+  }
 
-    if (currentTemp < 0) {
-      ctx.save();
-      const bondAlpha = Math.max(0.1, Math.min(0.65, (-currentTemp) / 50));
-      ctx.strokeStyle = `rgba(56, 189, 248, ${bondAlpha})`;
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const d = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
-          if (d < spacingX * 1.35) {
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-      ctx.restore();
-    }
+  function drawPiston() {
+    const x = BEAKER.x + 4, w = BEAKER.w - 8, y = PISTON.y;
 
-    let pColor1 = "#38bdf8", pColor2 = "#0284c7";
-    if (currentTemp >= 0 && currentTemp < 100) {
-      pColor1 = "#34d399"; pColor2 = "#059669";
-    } else if (currentTemp >= 100) {
-      pColor1 = "#f87171"; pColor2 = "#dc2626";
-    }
+    ctx.save();
+    // عمود المقبض المركزي
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(BEAKER.x + BEAKER.w / 2 - 5, 0, 10, y);
 
+    // لوح المكبس الضاغط
+    const pGrad = ctx.createLinearGradient(x, y, x, y + PISTON.handleH);
+    pGrad.addColorStop(0, "#334155");
+    pGrad.addColorStop(0.5, "#64748b");
+    pGrad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = pGrad;
+    ctx.fillRect(x, y, w, PISTON.handleH);
+
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1.5;
+    ctx.strokeRect(x, y, w, PISTON.handleH);
+
+    // مؤشر مقبض السحب (يد المكبس التفاعلية)
+    ctx.fillStyle = PISTON.isDragging ? "#38bdf8" : "#94a3b8";
+    ctx.beginPath();
+    ctx.roundRect(BEAKER.x + BEAKER.w / 2 - 35, y - 10, 70, 12, 5);
+    ctx.fill();
+    ctx.fillStyle = "#0f172a"; ctx.font = "bold 8.5px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("اسحب للضغط ↕", BEAKER.x + BEAKER.w / 2, y - 1);
+    ctx.restore();
+  }
+
+  function drawParticles() {
     particles.forEach(p => {
       ctx.save();
+      // تلون الجسيم بحسب الطاقة الحركية ودرجة الحرارة
+      const ratio = Math.max(0, Math.min(1, (currentTemp - 90) / 400));
+      const r = Math.round(56 + ratio * 190);
+      const g = Math.round(189 - ratio * 70);
+      const b = Math.round(248 - ratio * 190);
+
       const grad = ctx.createRadialGradient(
-        p.x - 3, p.y - 3, 2,
-        p.x, p.y, PARTICLE_RADIUS
+        p.x - p.radius * 0.35, p.y - p.radius * 0.35, p.radius * 0.1,
+        p.x, p.y, p.radius
       );
       grad.addColorStop(0, "#ffffff");
-      grad.addColorStop(0.3, pColor1);
-      grad.addColorStop(1, pColor2);
+      grad.addColorStop(0.4, `rgb(${r}, ${g}, ${b})`);
+      grad.addColorStop(1, `rgb(${Math.max(0, r-40)}, ${Math.max(0, g-40)}, ${Math.max(0, b-40)})`);
 
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, PARTICLE_RADIUS, 0, Math.PI * 2);
       ctx.fillStyle = grad;
-      ctx.shadowColor = pColor1;
-      ctx.shadowBlur = currentTemp > 80 ? 8 : 2;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       ctx.fill();
+
+      // هالة إشعاعية إذا كان الجسيم مقبوضاً باللمس
+      if (p.isHeld) {
+        ctx.strokeStyle = "#facc15"; ctx.lineWidth = 2; ctx.stroke();
+      }
       ctx.restore();
     });
-
-    renderHeater();
-    requestAnimationFrame(loop);
   }
 
-  let flameTick = 0;
-  function renderHeater() {
-    const heaterY = box.bottom + 22;
-    const centerX = box.x + box.width / 2;
+  function drawBurnerControls() {
+    const cx = width / 2;
+    const by = 295;
 
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(centerX - 40, heaterY + 22, 80, 8);
-    ctx.fillStyle = "#475569";
-    ctx.fillRect(centerX - 16, heaterY + 10, 32, 12);
+    ctx.save();
+    // شريط الموقد السفلي
+    ctx.fillStyle = "#1e293b"; ctx.strokeStyle = "#334155"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(cx - 100, by, 200, 36, 18);
+    ctx.fill(); ctx.stroke();
 
-    if (currentTemp > -10) {
-      flameTick += 0.2;
-      const intensity = Math.min(1, (currentTemp + 10) / 140);
-      const flameHeight = 10 + intensity * 26 + Math.sin(flameTick * 3) * 3;
-      const flameWidth = 12 + intensity * 24;
+    // علامات التبريد والتسخين
+    ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillStyle = "#38bdf8"; ctx.fillText("❄️ تبريد", cx - 65, by + 22);
+    ctx.fillStyle = "#f87171"; ctx.fillText("🔥 تسخين", cx + 65, by + 22);
 
-      ctx.save();
+    // مقبض سحب الموقد المركزي
+    const knobX = cx + (BURNER.heatLevel * 60);
+    ctx.fillStyle = BURNER.heatLevel > 0 ? "#f87171" : (BURNER.heatLevel < 0 ? "#38bdf8" : "#94a3b8");
+    ctx.beginPath();
+    ctx.arc(knobX, by + 18, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(knobX, by + 18, 4, 0, Math.PI * 2); ctx.fill();
+
+    // لهب الموقد تحت الكأس إذا كان التسخين مفعلاً
+    if (BURNER.heatLevel > 0) {
+      ctx.fillStyle = "#f59e0b";
       ctx.beginPath();
-      ctx.moveTo(centerX - flameWidth / 2, heaterY + 10);
-      ctx.quadraticCurveTo(centerX, heaterY + 10 - flameHeight, centerX + flameWidth / 2, heaterY + 10);
-      ctx.fillStyle = currentTemp > 90 ? "#ef4444" : "#f59e0b";
-      ctx.shadowColor = "#f97316";
-      ctx.shadowBlur = 12 * intensity;
+      ctx.arc(cx, BEAKER.y + BEAKER.h + 8, BURNER.heatLevel * 18, 0, Math.PI);
       ctx.fill();
+    }
+    ctx.restore();
+  }
 
-      ctx.beginPath();
-      ctx.moveTo(centerX - flameWidth / 4, heaterY + 10);
-      ctx.quadraticCurveTo(centerX, heaterY + 10 - (flameHeight * 0.55), centerX + flameWidth / 4, heaterY + 10);
-      ctx.fillStyle = currentTemp > 90 ? "#fbbf24" : "#38bdf8";
-      ctx.fill();
-      ctx.restore();
-    } else {
-      ctx.fillStyle = "#38bdf8";
-      ctx.font = "12px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("❄ تبريد فائق ❄", centerX, heaterY + 14);
+  // --- محرك التعامل المباشر مع اللمس والسحب (Pointer Events) ---
+  let heldParticle = null;
+  let dragOffset = 0;
+
+  function getPointerPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+
+  canvas.addEventListener("pointerdown", e => {
+    const pos = getPointerPos(e);
+    canvas.setPointerCapture(e.pointerId);
+
+    // 1. هل لمس مقبض المكبس العلوي؟
+    if (pos.x >= BEAKER.x && pos.x <= BEAKER.x + BEAKER.w &&
+        pos.y >= PISTON.y - 12 && pos.y <= PISTON.y + PISTON.handleH + 8) {
+      PISTON.isDragging = true;
+      dragOffset = pos.y - PISTON.y;
+      return;
+    }
+
+    // 2. هل لمس مقبض الموقد السفلي؟
+    const cx = width / 2;
+    const knobX = cx + (BURNER.heatLevel * 60);
+    if (Math.hypot(pos.x - knobX, pos.y - 313) < 25) {
+      BURNER.isDragging = true;
+      return;
+    }
+
+    // 3. هل التقط أحد الجسيمات بيده؟
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const p = particles[i];
+      if (Math.hypot(pos.x - p.x, pos.y - p.y) < p.radius * 2) {
+        heldParticle = p;
+        p.isHeld = true;
+        p.vx = 0; p.vy = 0;
+        return;
+      }
+    }
+  });
+
+  canvas.addEventListener("pointermove", e => {
+    const pos = getPointerPos(e);
+
+    // تحريك المكبس
+    if (PISTON.isDragging) {
+      PISTON.y = Math.max(PISTON.minY, Math.min(PISTON.maxY, pos.y - dragOffset));
+      return;
+    }
+
+    // تحريك الموقد
+    if (BURNER.isDragging) {
+      const cx = width / 2;
+      const val = (pos.x - cx) / 60;
+      BURNER.heatLevel = Math.max(-1, Math.min(1, val));
+      return;
+    }
+
+    // قذف وتحريك الجسيم المقبوض
+    if (heldParticle) {
+      heldParticle.vx = (pos.x - heldParticle.x) * 0.45;
+      heldParticle.vy = (pos.y - heldParticle.y) * 0.45;
+      heldParticle.x = pos.x;
+      heldParticle.y = pos.y;
+    }
+  });
+
+  function releasePointer() {
+    PISTON.isDragging = false;
+    BURNER.isDragging = false;
+    BURNER.heatLevel = 0; // عودة الموقد للوضع المحايد ذاتياً
+    if (heldParticle) {
+      heldParticle.isHeld = false;
+      heldParticle = null;
     }
   }
 
-  function loop() {
-    updatePhysics();
-    render();
-  }
+  canvas.addEventListener("pointerup", releasePointer);
+  canvas.addEventListener("pointercancel", releasePointer);
 
-  requestAnimationFrame(loop);
+  window.addEventListener("resize", () => {
+    resizeCanvas();
+    initSolidLattice();
+  });
+
+  // تشغيل المحاكاة بمعدل 60 إطاراً في الثانية
+  resizeCanvas();
+  initSolidLattice();
+  setInterval(updatePhysics, 1000 / 60);
+  requestAnimationFrame(render);
 </script>
 </body>
 </html>
