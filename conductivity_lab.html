@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>كاشف الروابط والتوصيل الكهربائي | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 12px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11.5px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* رف اختيار المواد الكيميائية */
+    .shelf-label { font-size: 11.5px; font-weight: 700; color: #94a3b8; margin-top: 2px; }
+    .substances-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+    }
+    .sub-btn {
+      background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: bold;
+      cursor: pointer; transition: all 0.2s; font-family: 'Cairo', sans-serif; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .sub-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.3); }
+    .sub-btn.ionic { border-right: 3px solid #ef4444; }
+    .sub-btn.covalent { border-right: 3px solid #38bdf8; }
+
+    /* لوحة القياس اللحظية */
+    .dashboard-bar {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; background: #1e293b;
+      padding: 8px 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;
+    }
+    .dash-item { display: flex; flex-direction: column; gap: 1px; }
+    .dash-lbl { font-size: 10px; color: #94a3b8; font-weight: 600; }
+    .dash-val { font-size: 13.5px; font-weight: 800; font-family: monospace; color: #f8fafc; }
+    .val-on { color: #fbbf24; }
+    .val-off { color: #64748b; }
+
+    /* منطقة الرسم (الكانفاس) */
+    .canvas-wrapper {
+      position: relative; width: 100%; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: center;
+    }
+    canvas { display: block; width: 100%; max-width: 460px; height: auto; }
+
+    /* لوحة التحكم السفلية */
+    .controls-panel {
+      width: 100%; background: #1e293b; padding: 10px 12px; border-radius: 12px;
+      display: flex; flex-direction: column; gap: 8px; border: 1px solid #334155;
+    }
+    .ctrl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .btn-switch {
+      flex: 1; padding: 8px 0; border-radius: 8px; font-size: 12.5px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; border: none;
+      background: #10b981; color: white; border: 1px solid #34d399;
+    }
+    .btn-switch.open { background: #ef4444; border-color: #f87171; }
+    .btn-switch:active { transform: scale(0.96); }
+
+    .slider-box {
+      display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: bold; color: #cbd5e1; flex: 1.2;
+    }
+    input[type=range] {
+      flex: 1; -webkit-appearance: none; height: 6px; border-radius: 3px; background: #334155; outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #38bdf8; cursor: pointer;
+    }
+
+    /* صندوق الشرح العلمي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 80px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>كاشف الروابط والتوصيل الكهربائي</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- رف المواد الكيميائية -->
+  <div class="shelf-label">اختر المادة المراد اختبارها في الكأس:</div>
+  <div class="substances-grid" id="subGrid"></div>
+
+  <!-- لوحة القياس الفورية -->
+  <div class="dashboard-bar">
+    <div class="dash-item">
+      <span class="dash-lbl">شدة التيار الكهربائي</span>
+      <span class="dash-val" id="dashCurrent">0.0 mA</span>
+    </div>
+    <div class="dash-item">
+      <span class="dash-lbl">حالة المصباح</span>
+      <span class="dash-val val-off" id="dashBulb">مطفأ ⚪</span>
+    </div>
+    <div class="dash-item">
+      <span class="dash-lbl">طبيعة الرابطة</span>
+      <span class="dash-val" id="dashBond">تساهمية</span>
+    </div>
+  </div>
+
+  <!-- منطقة الرسم الكيميائي -->
+  <div class="canvas-wrapper">
+    <canvas id="simCanvas" width="460" height="330"></canvas>
+  </div>
+
+  <!-- لوحة التحكم بالدارة والتركيز -->
+  <div class="controls-panel">
+    <div class="ctrl-row">
+      <button class="btn-switch" id="switchBtn" onclick="toggleSwitch()">⚡ قاطع الدارة: مغلق (متصل)</button>
+      <div class="slider-box" id="concentrationBox">
+        <span>الكمية: <b id="spoonsText">3 ملاعق</b></span>
+        <input type="range" id="spoonSlider" min="1" max="5" value="3" oninput="updateSpoons()">
+      </div>
+    </div>
+  </div>
+
+  <!-- صندوق التفسير العلمي المنهجي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">التفسير العلمي:</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // قاعدة بيانات المواد المنهجية
+  const substances = [
+    {
+      id: "salt_solution", name: "محلول ملح الطعام", sub: "NaCl في الماء",
+      bond: "أيونية ذائبة", type: "ionic_liquid", isConductive: true, baseCurrent: 180,
+      liquidColor: "rgba(56, 189, 248, 0.25)",
+      title: "المركبات الأيونية تذوب وتوصل الكهرباء:",
+      desc: "عند ذوبان ملح الطعام (NaCl) في الماء، تتفكك بلوراته إلى <b>أيونات صوديوم موجبة (Na⁺) وأيونات كلور سالبة (Cl⁻) حرة الحركة</b>. تتحرك هذه الشحنات نحو الأقطاب المعاكسة وتغلق الدارة فيتوهج المصباح بشدة."
+    },
+    {
+      id: "dry_salt", name: "ملح طعام جاف صلب", sub: "NaCl بلوري",
+      bond: "أيونية صلبة", type: "ionic_solid", isConductive: false, baseCurrent: 0,
+      liquidColor: "transparent",
+      title: "لماذا لا يوصل الملح الصلب الكهرباء؟",
+      desc: "على الرغم من كونه مركباً أيونياً، إلا أن <b>الأيونات مقيدة بإحكام داخل الشبكة البلورية الصلبة</b> وغير حرة الحركة مطلقاً، لذلك لا يمر أي تيار ويبقى المصباح مطفأً حتى يذوب في الماء."
+    },
+    {
+      id: "sugar_solution", name: "محلول سكر المائدة", sub: "C₁₂H₂₂O₁₁ في الماء",
+      bond: "تساهمية ذائبة", type: "covalent_liquid", isConductive: false, baseCurrent: 0,
+      liquidColor: "rgba(251, 191, 36, 0.15)",
+      title: "المركبات التساهمية تذوب ولا توصل الكهرباء:",
+      desc: "يذوب السكر في الماء بسهولة، لكنه يتفتت إلى <b>جزيئات تساهمية متعادلة الشحنة كهربائياً</b> لا تتفكك إلى أيونات. لعدم وجود جسيمات مشحونة حرة تنقل الإلكترونات، لا يمر تيار ويبقى المصباح مطفأً."
+    },
+    {
+      id: "pure_water", name: "ماء مقطر نقي", sub: "H₂O خالص",
+      bond: "تساهمية نقية", type: "pure_water", isConductive: false, baseCurrent: 0,
+      liquidColor: "rgba(56, 189, 248, 0.12)",
+      title: "الماء المقطر عازل كهربائي:",
+      desc: "الماء النقي الخالي من الأملاح يتكون من جزيئات ماء تساهمية ترتبط بروابط تساهمية، ودرجة تأينه الذاتي ضئيلة جداً لا تكفي لتمرير تيار يقاس، لذا يعد عازلاً ولا يضيء المصباح."
+    },
+    {
+      id: "kcl_solution", name: "محلول كلوريد البوتاسيوم", sub: "KCl في الماء",
+      bond: "أيونية ذائبة", type: "ionic_liquid", isConductive: true, baseCurrent: 175,
+      liquidColor: "rgba(56, 189, 248, 0.22)",
+      title: "مركب أيوني موصل (KCl):",
+      desc: "مركب أيوني يتفكك في الماء إلى أيونات بوتاسيوم موجبة (K⁺) وأيونات كلور سالبة (Cl⁻)، مما يوفر كثافة شحنات حرة كافية لإضاءة المصباح بقوة."
+    },
+    {
+      id: "oil", name: "زيت نباتي", sub: "مركب تساهمي",
+      bond: "تساهمية غير قطبية", type: "oil", isConductive: false, baseCurrent: 0,
+      liquidColor: "rgba(245, 158, 11, 0.35)",
+      title: "الزيوت مواد عازلة:",
+      desc: "الزيوت تتكون من سلاسل كربونية وهيدروجينية ترتبط بروابط تساهمية غير متأينة تماماً، وهي رديئة جداً في التوصيل وتستخدم كعوازل كهربائية."
+    }
+  ];
+
+  let currentSub = substances[0];
+  let isSwitchClosed = true;
+  let spoons = 3;
+  let particles = [];
+  let electronProgress = 0;
+
+  // توليد أزرار المواد في الرف
+  const subGrid = document.getElementById("subGrid");
+  substances.forEach((s, idx) => {
+    const btn = document.createElement("button");
+    btn.className = `sub-btn ${idx === 0 ? 'active' : ''} ${s.type.includes('ionic') ? 'ionic' : 'covalent'}`;
+    btn.innerHTML = `<span>${s.name}</span><small style="opacity:0.7; font-size:9.5px">${s.sub}</small>`;
+    btn.onclick = () => selectSubstance(s, btn);
+    subGrid.appendChild(btn);
+  });
+
+  // الصوت الفيزيائي المدمج عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let humOsc = null;
+  let humGain = null;
+
+  function playClick() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.05);
+    g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+  }
+
+  function startElectricHum() {
+    if (humOsc) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    humOsc = audioCtx.createOscillator();
+    humGain = audioCtx.createGain();
+    humOsc.type = 'sawtooth';
+    humOsc.frequency.setValueAtTime(60, audioCtx.currentTime); // تردد 60Hz كهربائي
+    humGain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+    humOsc.connect(humGain); humGain.connect(audioCtx.destination);
+    humOsc.start();
+  }
+
+  function stopElectricHum() {
+    if (humOsc) {
+      try { humOsc.stop(); humOsc.disconnect(); } catch(e){}
+      humOsc = null;
+    }
+  }
+
+  function selectSubstance(s, btn) {
+    currentSub = s;
+    document.querySelectorAll(".sub-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    playClick();
+
+    // إظهار/إخفاء شريط التركيز
+    document.getElementById("concentrationBox").style.visibility = s.type === "ionic_liquid" ? "visible" : "hidden";
+    initParticles();
+    updateDashboard();
+  }
+
+  function toggleSwitch() {
+    isSwitchClosed = !isSwitchClosed;
+    const btn = document.getElementById("switchBtn");
+    btn.className = isSwitchClosed ? "btn-switch" : "btn-switch open";
+    btn.innerText = isSwitchClosed ? "⚡ قاطع الدارة: مغلق (متصل)" : "⭕ قاطع الدارة: مفتوح (مفصول)";
+    playClick();
+    updateDashboard();
+  }
+
+  function updateSpoons() {
+    spoons = parseInt(document.getElementById("spoonSlider").value);
+    document.getElementById("spoonsText").innerText = `${spoons} ملاعق`;
+    initParticles();
+    updateDashboard();
+  }
+
+  // تهيئة جزيئات وأيونات المحلول
+  function initParticles() {
+    particles = [];
+    const count = currentSub.type === "ionic_liquid" ? spoons * 12 : (currentSub.type === "covalent_liquid" ? 28 : (currentSub.type === "ionic_solid" ? 36 : 14));
+
+    for (let i = 0; i < count; i++) {
+      if (currentSub.type === "ionic_solid") {
+        // شبكة بلورية متراصة صلبة في قاع الكأس
+        const col = i % 6;
+        const row = Math.floor(i / 6);
+        particles.push({
+          x: 185 + col * 15,
+          y: 260 + row * 8,
+          isPos: (col + row) % 2 === 0,
+          label: (col + row) % 2 === 0 ? "Na⁺" : "Cl⁻",
+          vx: 0, vy: 0, solid: true
+        });
+      } else {
+        particles.push({
+          x: 155 + Math.random() * 150,
+          y: 200 + Math.random() * 75,
+          isPos: i % 2 === 0,
+          label: currentSub.id.includes("kcl") ? (i % 2 === 0 ? "K⁺" : "Cl⁻") : (currentSub.id.includes("salt") ? (i % 2 === 0 ? "Na⁺" : "Cl⁻") : "Sugar"),
+          vx: (Math.random() - 0.5) * 0.7,
+          vy: (Math.random() - 0.5) * 0.7,
+          solid: false
+        });
+      }
+    }
+  }
+
+  function getCurrentConductivity() {
+    if (!isSwitchClosed) return 0;
+    if (!currentSub.isConductive) return 0;
+    return (currentSub.baseCurrent * (spoons / 3));
+  }
+
+  function updateDashboard() {
+    const current = getCurrentConductivity();
+    const dashCurr = document.getElementById("dashCurrent");
+    const dashBulb = document.getElementById("dashBulb");
+    const dashBond = document.getElementById("dashBond");
+    const infoT = document.getElementById("infoTitle");
+    const infoD = document.getElementById("infoText");
+
+    dashCurr.innerText = current.toFixed(1) + " mA";
+    dashBond.innerText = currentSub.bond;
+
+    if (current > 0) {
+      startElectricHum();
+      dashBulb.className = "dash-val val-on";
+      dashBulb.innerText = `مضيء 💡 (${Math.round((current / 240) * 100)}%)`;
+      infoT.style.color = "#fbbf24";
+    } else {
+      stopElectricHum();
+      dashBulb.className = "dash-val val-off";
+      dashBulb.innerText = isSwitchClosed ? "مطفأ ⚪" : "الدارة مفصولة ⭕";
+      infoT.style.color = "#38bdf8";
+    }
+
+    infoT.innerText = currentSub.title;
+    infoD.innerHTML = currentSub.desc;
+  }
+
+  // المحرك الفيزيائي والرسم
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const current = getCurrentConductivity();
+
+    // 1. رسم دارة التوصيل والأسلاك
+    drawCircuit(current);
+
+    // 2. رسم الكأس والمحلول والأقطاب
+    drawBeakerAndLiquid(current);
+
+    // 3. رسم المصباح المتوهج ديناميكياً
+    drawLightBulb(current);
+
+    // 4. رسم الجزيئات / الأيونات داخل المحلول
+    drawParticles(current);
+
+    // 5. نافذة التكبير المجهري (Zoom Lens)
+    drawMicroscopeView(current);
+
+    requestAnimationFrame(loop);
+  }
+
+  // رسم أسلاك الدارة وتدفق الإلكترونات
+  function drawCircuit(current) {
+    ctx.save();
+    // بطارية DC
+    ctx.fillStyle = "#1e293b"; ctx.strokeStyle = "#475569"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(40, 60, 60, 36, 6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#f8fafc"; ctx.font = "bold 11px monospace"; ctx.fillText("9V DC", 52, 82);
+    ctx.fillStyle = "#ef4444"; ctx.fillRect(45, 54, 12, 6); // موجب
+    ctx.fillStyle = "#38bdf8"; ctx.fillRect(83, 54, 12, 6); // سالب
+
+    // مفتاح السكين (Knife Switch)
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(100, 78); ctx.lineTo(140, 78); ctx.stroke();
+    ctx.fillStyle = "#334155"; ctx.beginPath(); ctx.arc(140, 78, 4, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(175, 78, 4, 0, 6.28); ctx.fill();
+
+    // نصل المفتاح
+    ctx.strokeStyle = isSwitchClosed ? "#10b981" : "#ef4444"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(140, 78);
+    ctx.lineTo(isSwitchClosed ? 175 : 165, isSwitchClosed ? 78 : 55);
+    ctx.stroke();
+
+    // أسلاك التوصيل للمصباح وللكأس
+    ctx.strokeStyle = current > 0 ? "#fbbf24" : "#475569"; ctx.lineWidth = 2.5;
+    // سلك من البطارية (+) إلى القطب الأيمن
+    ctx.beginPath();
+    ctx.moveTo(45, 54); ctx.lineTo(45, 30); ctx.lineTo(275, 30); ctx.lineTo(275, 170);
+    ctx.stroke();
+
+    // سلك من المفتاح إلى المصباح ومن ثم إلى القطب الأيسر
+    ctx.beginPath();
+    ctx.moveTo(175, 78); ctx.lineTo(205, 78);
+    ctx.moveTo(255, 78); ctx.lineTo(185, 78); ctx.lineTo(185, 170);
+    ctx.stroke();
+
+    // حركة شحنات الإلكترونات عبر الأسلاك إذا كان التيار يمر
+    if (current > 0) {
+      electronProgress = (electronProgress + 0.02 * (current / 180)) % 1;
+      ctx.fillStyle = "#facc15";
+      for (let i = 0; i < 10; i++) {
+        let p = (electronProgress + i / 10) % 1;
+        let x = 275 - p * 230;
+        ctx.beginPath(); ctx.arc(x, 30, 2, 0, 6.28); ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  // رسم المصباح المتوهج
+  function drawLightBulb(current) {
+    const bx = 230, by = 78;
+    ctx.save();
+    // قاعدة المصباح النحاسية
+    ctx.fillStyle = "#78716c"; ctx.fillRect(bx - 8, by - 6, 16, 12);
+
+    // زجاج المصباح
+    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(bx, by - 18, 14, 0, Math.PI * 2); ctx.stroke();
+
+    // فتيل التنجستن والتوهج
+    if (current > 0) {
+      const glowAlpha = Math.min(0.9, current / 180);
+      // هالة النور الدائرية الكبيرة (Light Bloom)
+      const glow = ctx.createRadialGradient(bx, by - 18, 2, bx, by - 18, 45 * (current / 160));
+      glow.addColorStop(0, "rgba(254, 240, 138, 0.95)");
+      glow.addColorStop(0.3, `rgba(250, 204, 21, ${glowAlpha * 0.6})`);
+      glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(bx, by - 18, 45 * (current / 160), 0, Math.PI * 2); ctx.fill();
+
+      // سلك الفتيل المشتعل
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(bx - 4, by - 14); ctx.lineTo(bx, by - 22); ctx.lineTo(bx + 4, by - 14); ctx.stroke();
+    } else {
+      ctx.fillStyle = "rgba(255,255,255,0.05)";
+      ctx.beginPath(); ctx.arc(bx, by - 18, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#64748b"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(bx - 4, by - 14); ctx.lineTo(bx, by - 20); ctx.lineTo(bx + 4, by - 14); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // رسم الكأس الزجاجي والمحلول والقطبين
+  function drawBeakerAndLiquid(current) {
+    const kx = 145, ky = 160, kw = 170, kh = 135;
+    ctx.save();
+    // السائل داخل الكأس
+    if (currentSub.liquidColor !== "transparent") {
+      ctx.fillStyle = currentSub.liquidColor;
+      ctx.fillRect(kx + 4, ky + 25, kw - 8, kh - 28);
+      // سطح السائل
+      ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(kx + 4, ky + 25); ctx.lineTo(kx + kw - 4, ky + 25); ctx.stroke();
+    }
+
+    // جدار الكأس الزجاجي
+    ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(kx, ky); ctx.lineTo(kx, ky + kh); ctx.lineTo(kx + kw, ky + kh); ctx.lineTo(kx + kw, ky);
+    ctx.stroke();
+
+    // تدريجات الكأس
+    ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 1;
+    for (let m = 1; m <= 3; m++) {
+      ctx.beginPath(); ctx.moveTo(kx + 4, ky + 25 + m * 25); ctx.lineTo(kx + 16, ky + 25 + m * 25); ctx.stroke();
+    }
+
+    // قطبا الغرافيت (الأنود والكاثود)
+    // كاثود سالِب (يسار)
+    ctx.fillStyle = "#334155"; ctx.fillRect(180, 140, 10, 120);
+    ctx.fillStyle = "#38bdf8"; ctx.font = "bold 9.5px monospace"; ctx.fillText("(-)", 178, 134);
+    // أنود موجَب (يمين)
+    ctx.fillStyle = "#334155"; ctx.fillRect(270, 140, 10, 120);
+    ctx.fillStyle = "#ef4444"; ctx.fillText("(+)", 268, 134);
+
+    ctx.restore();
+  }
+
+  // رسم الجزيئات والأيونات وانجذابها للأقطاب
+  function drawParticles(current) {
+    particles.forEach(p => {
+      ctx.save();
+      if (p.solid) {
+        // ملح صلب متراص
+        ctx.fillStyle = p.isPos ? "#a855f7" : "#22c55e";
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, Math.PI * 2); ctx.fill();
+      } else {
+        // حركة عشوائية
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 155 || p.x > 300) p.vx *= -1;
+        if (p.y < 190 || p.y > 280) p.vy *= -1;
+
+        // إذا كان هناك تيار والأيون مشحون: ينجذب للقطب المعاكس!
+        if (current > 0) {
+          if (p.isPos) {
+            // Na⁺ ينجذب للقطب السالب (180px)
+            p.x += (185 - p.x) * 0.015;
+          } else {
+            // Cl⁻ ينجذب للقطب الموجب (270px)
+            p.x += (270 - p.x) * 0.015;
+          }
+        }
+
+        if (p.label === "Sugar") {
+          // جزيء سكر متعادل (كتلة خضراء/صفراء سداسية)
+          ctx.fillStyle = "rgba(251, 191, 36, 0.85)";
+          ctx.beginPath(); ctx.arc(p.x, p.y, 6.5, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#000"; ctx.font = "bold 8px sans-serif"; ctx.textAlign = "center"; ctx.fillText("C₁₂", p.x, p.y + 3);
+        } else {
+          // أيون مشحون
+          ctx.fillStyle = p.isPos ? "#a855f7" : "#22c55e";
+          ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = "#fff"; ctx.font = "bold 8px monospace"; ctx.textAlign = "center"; ctx.fillText(p.label, p.x, p.y + 3);
+        }
+      }
+      ctx.restore();
+    });
+  }
+
+  // نافذة الفحص المجهري المكبر (Lens)
+  function drawMicroscopeView(current) {
+    const lx = 390, ly = 230, lr = 46;
+    ctx.save();
+    // إطار العدسة المكبرة
+    ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(lx, ly, lr, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = "#0f172a"; ctx.beginPath(); ctx.arc(lx, ly, lr - 1, 0, Math.PI * 2); ctx.fill();
+
+    // محتوى العدسة
+    ctx.save();
+    ctx.beginPath(); ctx.arc(lx, ly, lr - 2, 0, Math.PI * 2); ctx.clip();
+
+    ctx.fillStyle = "#94a3b8"; ctx.font = "bold 9.5px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("الرؤية المجهرية", lx, ly - 28);
+
+    if (currentSub.type === "ionic_liquid") {
+      ctx.fillStyle = "#a855f7"; ctx.beginPath(); ctx.arc(lx - 16, ly + 4, 10, 0, 6.28); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "bold 9px monospace"; ctx.fillText("Na⁺", lx - 16, ly + 7);
+
+      ctx.fillStyle = "#22c55e"; ctx.beginPath(); ctx.arc(lx + 16, ly + 8, 12, 0, 6.28); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.fillText("Cl⁻", lx + 16, ly + 11);
+
+      ctx.fillStyle = current > 0 ? "#10b981" : "#94a3b8"; ctx.font = "bold 8.5px 'Cairo', sans-serif";
+      ctx.fillText(current > 0 ? "أيونات حرة ناقلة ⚡" : "أيونات حرة ساكنة", lx, ly + 32);
+    } else if (currentSub.type === "covalent_liquid") {
+      ctx.fillStyle = "#fbbf24"; ctx.beginPath(); ctx.arc(lx, ly + 4, 13, 0, 6.28); ctx.fill();
+      ctx.fillStyle = "#000"; ctx.font = "bold 9px monospace"; ctx.fillText("سكر", lx, ly + 7);
+      ctx.fillStyle = "#ef4444"; ctx.font = "bold 8.5px 'Cairo', sans-serif";
+      ctx.fillText("جزيء متعادل (لا شحنة)", lx, ly + 32);
+    } else if (currentSub.type === "ionic_solid") {
+      ctx.fillStyle = "#64748b"; ctx.font = "bold 8.5px 'Cairo', sans-serif";
+      ctx.fillText("شبكة بلورية صلبة", lx, ly);
+      ctx.fillText("الأيونات مقيدة 🔒", lx, ly + 14);
+    } else {
+      ctx.fillStyle = "#38bdf8"; ctx.font = "bold 8.5px 'Cairo', sans-serif";
+      ctx.fillText("جزيئات H₂O متعادلة", lx, ly);
+      ctx.fillText("لا توجد أيونات حرة", lx, ly + 14);
+    }
+    ctx.restore();
+    ctx.restore();
+  }
+
+  initParticles();
+  updateDashboard();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
