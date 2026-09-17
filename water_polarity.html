@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>قطبية جزيء الماء والمذيب العام | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 12px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11.5px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* شريط اختيار الوضع */
+    .mode-tabs {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #1e293b;
+      padding: 4px; border-radius: 10px; border: 1px solid #334155;
+    }
+    .mode-btn {
+      background: transparent; border: none; color: #94a3b8; padding: 8px 0;
+      border-radius: 8px; font-size: 12.5px; font-weight: bold; cursor: pointer;
+      font-family: 'Cairo', sans-serif; transition: all 0.2s;
+    }
+    .mode-btn.active { background: #0284c7; color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    /* منطقة الرسم */
+    .canvas-wrapper {
+      position: relative; width: 100%; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: center;
+      touch-action: none;
+    }
+    canvas { display: block; width: 100%; max-width: 440px; height: auto; }
+
+    /* لوحة القياسات السريعة */
+    .meters-bar {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: #1e293b;
+      padding: 8px 12px; border-radius: 10px; border: 1px solid #334155; text-align: center;
+    }
+    .meter-item { display: flex; flex-direction: column; gap: 1px; }
+    .meter-label { font-size: 10.5px; color: #94a3b8; font-weight: 600; }
+    .meter-val { font-size: 13.5px; font-weight: bold; color: #f8fafc; font-family: monospace; }
+    .val-highlight { color: #38bdf8; }
+
+    /* أزرار التحكم */
+    .controls-panel {
+      width: 100%; background: #1e293b; padding: 10px 12px; border-radius: 12px;
+      display: flex; gap: 8px; border: 1px solid #334155;
+    }
+    .btn {
+      flex: 1; padding: 8px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; border: none;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-action { background: #10b981; color: white; border: 1px solid #34d399; }
+    .btn-secondary { background: #334155; color: #f1f5f9; border: 1px solid #475569; }
+
+    /* صندوق الشرح العلمي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 85px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>قطبية جزيء الماء والمذيب العام</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-btn active" id="tabMode1" onclick="switchMode(1)">🔬 تشريح قطبية الجزيء</button>
+    <button class="mode-btn" id="tabMode2" onclick="switchMode(2)">🧂 آلية الإذابة (ملح الطعام)</button>
+  </div>
+
+  <div class="meters-bar" id="metersBar">
+    <div class="meter-item">
+      <span class="meter-label">الشكل الهندسي</span>
+      <span class="meter-val val-highlight">حرف (V) غير متماثل</span>
+    </div>
+    <div class="meter-item">
+      <span class="meter-label">الشحنة الكلية</span>
+      <span class="meter-val">متعادلة (0)</span>
+    </div>
+    <div class="meter-item">
+      <span class="meter-label">عزم الاستقطاب</span>
+      <span class="meter-val val-highlight">قطبي دائم (Polar)</span>
+    </div>
+  </div>
+
+  <div class="canvas-wrapper">
+    <canvas id="simCanvas" width="440" height="340"></canvas>
+  </div>
+
+  <div class="controls-panel" id="controlsPanel">
+    <!-- الأزرار تتغير ديناميكياً مع كل وضع -->
+  </div>
+
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">قطبية جزيء الماء (H₂O):</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("simCanvas");
+  const ctx = canvas.getContext("2d");
+
+  let currentMode = 1; // 1 = Molecule View, 2 = Dissolving View
+  let rotAngle = 0; // لتدوير الجزيء في الوضع 1
+  let isDragging = false;
+  let lastMouseX = 0;
+
+  // إعدادات وضع الإذابة (وضع 2)
+  let saltCrystal = [];
+  let waterSolvent = [];
+  let dissolvedIons = [];
+  let isDissolving = false;
+  let dissolvedCount = 0;
+
+  // محرك الصوت عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playBeep(freq, dur) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  }
+
+  // التبديل بين الأوضاع
+  function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById("tabMode1").className = mode === 1 ? "mode-btn active" : "mode-btn";
+    document.getElementById("tabMode2").className = mode === 2 ? "mode-btn active" : "mode-btn";
+
+    const controls = document.getElementById("controlsPanel");
+    const title = document.getElementById("infoTitle");
+    const desc = document.getElementById("infoText");
+
+    if (mode === 1) {
+      controls.innerHTML = `
+        <button class="btn btn-secondary" onclick="rotAngle = 0">🔄 استعادة الزاوية المركزية</button>
+      `;
+      title.innerText = "قطبية جزيء الماء وتوزيع الشحنات:";
+      title.style.color = "#38bdf8";
+      desc.innerHTML = "يتكون جزيء الماء من ذرتي هيدروجين صغيرتين بشحنة <b>موجبة جزئية (δ+)</b> وذرة أوكسجين كبيرة بشحنة <b>سالبة جزئية (δ-)</b>. شكل حرف V غير المتماثل يجعل الجزيء قطبياً ومذيباً عاماً فريداً.";
+      document.getElementById("metersBar").innerHTML = `
+        <div class="meter-item"><span class="meter-label">الشكل الهندسي</span><span class="meter-val val-highlight">حرف (V) غير متماثل</span></div>
+        <div class="meter-item"><span class="meter-label">الشحنة الكلية</span><span class="meter-val">متعادلة (0)</span></div>
+        <div class="meter-item"><span class="meter-label">عزم الاستقطاب</span><span class="meter-val val-highlight">قطبي دائم (Polar)</span></div>
+      `;
+    } else {
+      controls.innerHTML = `
+        <button class="btn btn-action" id="dissolveBtn" onclick="toggleDissolve()">💧 بدء عملية التفكيك والإذابة</button>
+        <button class="btn btn-secondary" onclick="resetDissolve()">🔄 إعادة بلورة الملح</button>
+      `;
+      title.innerText = "كيف يذيب الماء بلورات ملح الطعام (NaCl)؟";
+      title.style.color = "#10b981";
+      desc.innerHTML = "اضغط على <b>«بدء عملية التفكيك والإذابة»</b> لتشاهد كيف تنجذب ذرات الأوكسجين السلبية (δ-) لأيونات الصوديوم (Na⁺)، بينما تنجذب ذرات الهيدروجين الإيجابية (δ+) لأيونات الكلور (Cl⁻) وتفصلها عن البلورة.";
+      initSaltSimulation();
+    }
+  }
+
+  // تهيئة محاكاة الملح (الوضع 2)
+  function initSaltSimulation() {
+    saltCrystal = [];
+    waterSolvent = [];
+    dissolvedIons = [];
+    isDissolving = false;
+    dissolvedCount = 0;
+
+    // بناء شبكة الملح المتراصة 4x4 في المركز
+    const startX = 180, startY = 130, spacing = 26;
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const isNa = (r + c) % 2 === 0;
+        saltCrystal.push({
+          x: startX + c * spacing,
+          y: startY + r * spacing,
+          targetX: startX + c * spacing,
+          targetY: startY + r * spacing,
+          type: isNa ? 'Na' : 'Cl',
+          r: isNa ? 10 : 13, // أيون الكلور أكبر من الصوديوم
+          dissolved: false
+        });
+      }
+    }
+
+    // إنشاء جزيئات الماء المذيبة
+    for (let i = 0; i < 30; i++) {
+      waterSolvent.push({
+        x: 40 + Math.random() * 360,
+        y: 40 + Math.random() * 260,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: (Math.random() - 0.5) * 1.5,
+        angle: Math.random() * 6.28,
+        targetIon: null
+      });
+    }
+    updateDissolveMeters();
+  }
+
+  function updateDissolveMeters() {
+    if (currentMode !== 2) return;
+    document.getElementById("metersBar").innerHTML = `
+      <div class="meter-item"><span class="meter-label">الأيونات المذابة</span><span class="meter-val val-highlight">${dissolvedCount} / 16</span></div>
+      <div class="meter-item"><span class="meter-label">حالة الملح</span><span class="meter-val">${dissolvedCount === 16 ? 'ذائب كلياً' : 'بلورة صلبة'}</span></div>
+      <div class="meter-item"><span class="meter-label">تركيز المحلول</span><span class="meter-val val-highlight">${Math.round((dissolvedCount/16)*100)}%</span></div>
+    `;
+  }
+
+  function toggleDissolve() {
+    isDissolving = !isDissolving;
+    const btn = document.getElementById("dissolveBtn");
+    btn.innerText = isDissolving ? "⏸ إيقاف مؤقت" : "💧 متابعة الإذابة";
+    btn.style.background = isDissolving ? "#f59e0b" : "#10b981";
+  }
+
+  function resetDissolve() {
+    initSaltSimulation();
+    const btn = document.getElementById("dissolveBtn");
+    btn.innerText = "💧 بدء عملية التفكيك والإذابة";
+    btn.style.background = "#10b981";
+  }
+
+  // التفاعل باللمس والماوس لتدوير الجزيء في الوضع 1
+  canvas.addEventListener("pointerdown", e => { isDragging = true; lastMouseX = e.clientX; });
+  window.addEventListener("pointermove", e => {
+    if (isDragging && currentMode === 1) {
+      let dx = e.clientX - lastMouseX;
+      rotAngle += dx * 0.01;
+      lastMouseX = e.clientX;
+    }
+  });
+  window.addEventListener("pointerup", () => { isDragging = false; });
+
+  // حلقة الرسم والتحديث
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (currentMode === 1) {
+      renderMode1Molecule();
+    } else {
+      updateMode2Physics();
+      renderMode2Dissolving();
+    }
+    requestAnimationFrame(loop);
+  }
+
+  // --- الوضع 1: تشريح جزيء الماء ---
+  function renderMode1Molecule() {
+    ctx.save();
+    ctx.translate(220, 165);
+    ctx.rotate(rotAngle);
+
+    // 1. هالة الكثافة الإلكترونية (غير المتماثلة)
+    const cloudGrad = ctx.createRadialGradient(0, -20, 20, 0, 0, 145);
+    cloudGrad.addColorStop(0, "rgba(239, 68, 68, 0.2)"); // أحمر عند الأوكسجين (سالب)
+    cloudGrad.addColorStop(0.7, "rgba(56, 189, 248, 0.15)"); // أزرق عند الهيدروجين (موجب)
+    cloudGrad.addColorStop(1, "transparent");
+    ctx.fillStyle = cloudGrad;
+    ctx.beginPath(); ctx.arc(0, 0, 145, 0, Math.PI * 2); ctx.fill();
+
+    // 2. الروابط التساهمية الأحادية
+    const h1x = -75, h1y = 65;
+    const h2x = 75, h2y = 65;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"; ctx.lineWidth = 14; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(h1x, h1y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(h2x, h2y); ctx.stroke();
+
+    // 3. ذرة الأوكسجين الكبيرة في المركز
+    const oGrad = ctx.createRadialGradient(-15, -35, 8, 0, -20, 52);
+    oGrad.addColorStop(0, "#ffffff");
+    oGrad.addColorStop(0.3, "#f87171");
+    oGrad.addColorStop(1, "#b91c1c");
+    ctx.fillStyle = oGrad;
+    ctx.beginPath(); ctx.arc(0, -20, 52, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2; ctx.stroke();
+
+    // علامات الأوكسجين
+    ctx.fillStyle = "#ffffff"; ctx.font = "bold 22px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("O", 0, -12);
+    ctx.fillStyle = "#fecaca"; ctx.font = "bold 16px monospace";
+    ctx.fillText("δ-", 0, -42);
+
+    // 4. ذرتا الهيدروجين الصغيرتان
+    [ [h1x, h1y], [h2x, h2y] ].forEach(pt => {
+      const hGrad = ctx.createRadialGradient(pt[0] - 8, pt[1] - 8, 4, pt[0], pt[1], 28);
+      hGrad.addColorStop(0, "#ffffff");
+      hGrad.addColorStop(0.3, "#38bdf8");
+      hGrad.addColorStop(1, "#0369a1");
+      ctx.fillStyle = hGrad;
+      ctx.beginPath(); ctx.arc(pt[0], pt[1], 28, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 1.5; ctx.stroke();
+
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 16px 'Cairo', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("H", pt[0], pt[1] + 5);
+      ctx.fillStyle = "#bae6fd"; ctx.font = "bold 14px monospace";
+      ctx.fillText("δ+", pt[0], pt[1] + 24);
+    });
+
+    ctx.restore();
+
+    // توجيه تعليمي بالسحب
+    ctx.fillStyle = "#64748b"; ctx.font = "11.5px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("👆 اسحب بإصبعك لتدوير واستكشاف أقطاب الجزيء", 220, 325);
+  }
+
+  // --- الوضع 2: محاكاة تفكيك وإذابة الملح ---
+  function updateMode2Physics() {
+    // حركة جزيئات الماء العشوائية
+    waterSolvent.forEach(w => {
+      w.x += w.vx; w.y += w.vy;
+      if (w.x < 20 || w.x > 420) w.vx *= -1;
+      if (w.y < 20 || w.y > 320) w.vy *= -1;
+      w.angle += 0.02;
+    });
+
+    if (!isDissolving) return;
+
+    // البحث عن أيونات غير مذابة على أطراف البلورة لفكها
+    const undissolved = saltCrystal.filter(i => !i.dissolved);
+    if (undissolved.length > 0 && Math.random() < 0.04) {
+      // تفكيك أيون عشوائي من أطراف البلورة
+      const ion = undissolved[Math.floor(Math.random() * undissolved.length)];
+      ion.dissolved = true;
+      dissolvedCount++;
+      playBeep(ion.type === 'Na' ? 440 : 330, 0.12);
+
+      // تحديد مسار انطلاقه بعيداً محاطاً بجزيئات الماء
+      const pushAngle = Math.atan2(ion.y - 170, ion.x - 220) + (Math.random() - 0.5);
+      const pushDist = 90 + Math.random() * 50;
+      ion.targetX = ion.x + Math.cos(pushAngle) * pushDist;
+      ion.targetY = ion.y + Math.sin(pushAngle) * pushDist;
+      updateDissolveMeters();
+    }
+
+    // حركة الأيونات المفككة نحو أطراف الكأس
+    saltCrystal.forEach(ion => {
+      if (ion.dissolved) {
+        ion.x += (ion.targetX - ion.x) * 0.05;
+        ion.y += (ion.targetY - ion.y) * 0.05;
+      }
+    });
+  }
+
+  function renderMode2Dissolving() {
+    // 1. رسم جزيئات الماء الخلفية السابحة (V-shapes صغيرة)
+    waterSolvent.forEach(w => {
+      drawMiniWater(w.x, w.y, w.angle, 0.4);
+    });
+
+    // 2. خطوط التجاذب البلوري
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; ctx.lineWidth = 1.5;
+    for (let i = 0; i < saltCrystal.length; i++) {
+      for (let j = i + 1; j < saltCrystal.length; j++) {
+        const a = saltCrystal[i], b = saltCrystal[j];
+        if (!a.dissolved && !b.dissolved && Math.hypot(a.x - b.x, a.y - b.y) < 32) {
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+      }
+    }
+
+    // 3. رسم أيونات الصوديوم والكلور
+    saltCrystal.forEach(ion => {
+      ctx.save();
+      if (ion.type === 'Na') {
+        // أيون الصوديوم Na⁺ (أرجواني صغير)
+        const grad = ctx.createRadialGradient(ion.x - 3, ion.y - 3, 2, ion.x, ion.y, ion.r);
+        grad.addColorStop(0, "#ffffff"); grad.addColorStop(0.4, "#a855f7"); grad.addColorStop(1, "#6b21a8");
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(ion.x, ion.y, ion.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.font = "bold 9.5px 'Cairo', sans-serif"; ctx.textAlign = "center";
+        ctx.fillText("Na⁺", ion.x, ion.y + 3.5);
+
+        // إذا كان مذاباً: نرسم حوله غلاف إماهة (الأوكسجين السالب δ- يواجه الصوديوم الموجب)
+        if (ion.dissolved) {
+          for (let k = 0; k < 4; k++) {
+            let a = (k * Math.PI / 2) + performance.now() * 0.001;
+            let wx = ion.x + Math.cos(a) * 26;
+            let wy = ion.y + Math.sin(a) * 26;
+            drawMiniWater(wx, wy, a + Math.PI, 0.45); // الأوكسجين موجه للمركز
+          }
+        }
+      } else {
+        // أيون الكلور Cl⁻ (أخضر أكبر)
+        const grad = ctx.createRadialGradient(ion.x - 3, ion.y - 3, 2, ion.x, ion.y, ion.r);
+        grad.addColorStop(0, "#ffffff"); grad.addColorStop(0.4, "#22c55e"); grad.addColorStop(1, "#15803d");
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(ion.x, ion.y, ion.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.font = "bold 10px 'Cairo', sans-serif"; ctx.textAlign = "center";
+        ctx.fillText("Cl⁻", ion.x, ion.y + 3.5);
+
+        // إذا كان مذاباً: نرسم حوله غلاف إماهة (الهيدروجين الموجب δ+ يواجه الكلور السالب)
+        if (ion.dissolved) {
+          for (let k = 0; k < 4; k++) {
+            let a = (k * Math.PI / 2) - performance.now() * 0.001;
+            let wx = ion.x + Math.cos(a) * 28;
+            let wy = ion.y + Math.sin(a) * 28;
+            drawMiniWater(wx, wy, a, 0.45); // الهيدروجين موجه للمركز
+          }
+        }
+      }
+      ctx.restore();
+    });
+
+    // تسميات توضيحية أعلى الكانفاس
+    ctx.fillStyle = "#a855f7"; ctx.fillRect(25, 20, 10, 10);
+    ctx.fillStyle = "#cbd5e1"; ctx.font = "11px 'Cairo', sans-serif"; ctx.fillText("أيون الصوديوم (Na⁺)", 42, 30);
+
+    ctx.fillStyle = "#22c55e"; ctx.fillRect(160, 20, 10, 10);
+    ctx.fillStyle = "#cbd5e1"; ctx.fillText("أيون الكلور (Cl⁻)", 177, 30);
+  }
+
+  // رسم جزيء ماء صغير في وضع الإذابة
+  function drawMiniWater(x, y, angle, scale) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.scale(scale, scale);
+
+    // الأوكسجين (أحمر)
+    ctx.fillStyle = "#ef4444";
+    ctx.beginPath(); ctx.arc(0, -8, 9, 0, Math.PI * 2); ctx.fill();
+
+    // ذرات الهيدروجين (أزرق)
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath(); ctx.arc(-10, 8, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(10, 8, 5.5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  // التشغيل الأولي
+  switchMode(1);
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
