@@ -12,83 +12,106 @@
       font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
       align-items: center; min-height: 100vh;
     }
-    .container { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 12px; }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 10px; }
 
-    /* زر الرجوع */
+    /* شريط الرجوع العلوي */
     .top-nav { width: 100%; display: flex; justify-content: flex-start; margin-bottom: 2px; }
     .back-btn {
       display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
-      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 6px 14px;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
       border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
     }
     .back-btn:active { transform: scale(0.96); background: #334155; }
 
-    .header { text-align: center; margin-top: 2px; }
+    .header { text-align: center; }
     .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; }
     
-    /* شريط التبويبات (أفقي قابل للتمرير) */
+    /* شريط التبويبات الأفقي */
     .tabs-container {
-      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;
-      scrollbar-width: none; /* إخفاء شريط التمرير */
+      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px;
+      scrollbar-width: none;
     }
     .tabs-container::-webkit-scrollbar { display: none; }
     
     .tab-btn {
       flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
-      padding: 6px 14px; border-radius: 8px; font-size: 12.5px; font-weight: bold;
+      padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold;
       cursor: pointer; transition: 0.2s; font-family: 'Cairo', sans-serif;
     }
     .tab-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
 
-    /* منطقة العرض */
+    /* منطقة الرسم الكانفاس */
     .canvas-wrapper {
       position: relative; width: 100%; background: #111827; border-radius: 14px;
       border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex; justify-content: center;
     }
-    canvas { display: block; width: 100%; max-width: 420px; height: auto; }
+    canvas { display: block; width: 100%; max-width: 440px; height: auto; }
+
+    /* مؤشر الوقت والتقدم */
+    .progress-bar-container {
+      width: 100%; background: #1e293b; height: 6px; border-radius: 3px; overflow: hidden;
+    }
+    .progress-bar {
+      width: 0%; height: 100%; background: linear-gradient(90deg, #38bdf8, #10b981);
+      transition: width 0.1s linear;
+    }
+    .timer-badge {
+      font-size: 11.5px; color: #94a3b8; display: flex; justify-content: space-between; font-weight: 600;
+    }
 
     /* لوحة التحكم */
     .controls-panel {
-      width: 100%; background: #1e293b; padding: 12px; border-radius: 12px;
-      display: flex; gap: 12px; border: 1px solid #334155;
+      width: 100%; background: #1e293b; padding: 10px 12px; border-radius: 12px;
+      display: flex; gap: 10px; border: 1px solid #334155;
     }
     .action-btn {
       flex: 1; background: #10b981; color: #ffffff; border: 1px solid #34d399;
-      padding: 10px 0; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer;
+      padding: 8px 0; border-radius: 8px; font-size: 13.5px; font-weight: bold; cursor: pointer;
       font-family: 'Cairo', sans-serif; transition: 0.15s;
     }
     .action-btn:active { transform: scale(0.96); }
-    .action-btn.reset { background: #334155; border-color: #475569; color: #f1f5f9; }
+    .action-btn.reset { background: #334155; border-color: #475569; color: #f1f5f9; flex: 0.6; }
 
-    /* صندوق الشرح */
+    /* صندوق الشرح العلمي */
     .info-card {
       width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
-      border-radius: 8px; padding: 12px 14px; font-size: 12.5px; line-height: 1.6; min-height: 90px;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 80px;
     }
-    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 4px; font-size: 13.5px; }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
-  <div class="header"><h1>مختبر طرائق فصل المواد</h1></div>
-
-  <div class="tabs-container" id="tabsBox">
-    <!-- سيتم تعبئة الأزرار هنا عبر الجافاسكريبت -->
+  
+  <div class="header">
+    <h1>مختبر طرائق فصل المواد</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
   </div>
 
+  <div class="tabs-container" id="tabsBox"></div>
+
   <div class="canvas-wrapper">
-    <canvas id="simCanvas" width="420" height="320"></canvas>
+    <canvas id="simCanvas" width="440" height="340"></canvas>
+  </div>
+
+  <div class="timer-badge">
+    <span id="statusText">جاهز لبدء التجربة</span>
+    <span id="timerText">المدة: 15 ثانية</span>
+  </div>
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
   </div>
 
   <div class="controls-panel">
-    <button class="action-btn" id="startBtn" onclick="toggleProcess()">▶ بدء عملية الفصل</button>
-    <button class="action-btn reset" onclick="resetProcess()">🔄 إعادة تهيئة</button>
+    <button class="action-btn" id="startBtn" onclick="toggleProcess()">▶ بدء عملية الفصل (15 ثانية)</button>
+    <button class="action-btn reset" onclick="resetProcess()">🔄 إعادة ضبط</button>
   </div>
 
   <div class="info-card">
-    <div class="info-title" id="infoTitle">الترشيح</div>
+    <div class="info-title" id="infoTitle">1. الترشيح</div>
     <div id="infoText">جاري التحميل...</div>
   </div>
 </div>
@@ -100,45 +123,49 @@
   const infoText = document.getElementById("infoText");
   const startBtn = document.getElementById("startBtn");
   const tabsBox = document.getElementById("tabsBox");
+  const progressBar = document.getElementById("progressBar");
+  const timerText = document.getElementById("timerText");
+  const statusText = document.getElementById("statusText");
 
+  const SIM_DURATION_MS = 15000; // مدة التجربة 15 ثانية بالتمام
   let activeMethod = 0;
   let isRunning = false;
-  let progress = 0; // 0 to 1
-  let particles = []; // لاستخدامها في الأنيميشن
+  let progress = 0; // من 0 إلى 1
+  let startTime = null;
+  let elapsedBeforePause = 0;
+  let particles = [];
 
-  // بيانات طرق الفصل الـ 7
   const methods = [
     {
-      id: 0, title: "1. الترشيح", 
-      desc: "تُستخدم لفصل مادة صلبة غير ذائبة (مثل الرمل) عن سائل (الماء) باستخدام ورقة ترشيح تسمح بنفاذ السائل وتحتجز المادة الصلبة."
+      id: 0, title: "1. الترشيح",
+      desc: "فصل مادة صلبة غير ذائبة (الرمل) عن السائل باستعمال قمع زجاجي مبطن بورقة ترشيح؛ تنفذ دقائق الماء لصغرها ويُحتجز الرمل على الورقة."
     },
     {
-      id: 1, title: "2. قمع الفصل", 
-      desc: "تُستخدم لفصل سائلين غير ممتزجين (مثل الزيت والماء). يعتمد الفصل على اختلاف الكثافة؛ فالماء الأثقل ينزل أولاً عبر الصمام."
+      id: 1, title: "2. قمع الفصل",
+      desc: "فصل السوائل غير الممتزجة اعتماداً على تباين الكثافة؛ يستقر الماء ذو الكثافة الأعلى في الأسفل ويطفو الزيت ذو الكثافة الأقل للأعلى، ويُفرغ الماء عبر الصمام."
     },
     {
-      id: 2, title: "3. التبخير", 
-      desc: "تُستخدم لفصل مادة صلبة ذائبة تماماً في سائل (مثل الملح في الماء). بتبخير السائل كلياً تتبقى المادة الصلبة في القاع."
+      id: 2, title: "3. التبخير",
+      desc: "فصل مادة صلبة ذائبة (الملح) عن الماء بالتسخين الشمسي أو الحراري؛ يتبخر الماء كلياً ويتبقى الملح في قاع الأحواض، كما في حقول الملح البحرية."
     },
     {
-      id: 3, title: "4. التبلور", 
-      desc: "فصل المواد الصلبة الذائبة على شكل بلورات نقية (مثل السكر) عند تبريد المحلول المركز، حيث تنتقل الكتلة الصلبة لشكل بلوري."
+      id: 3, title: "4. التبلور",
+      desc: "انتقال كتلة المادة الصلبة الذائبة من المحلول السائل المشبع لتشكيل بلورات صلبة نقية منتظمة عند تبريد المحلول، كما في صناعة السكر من القصب."
     },
     {
-      id: 4, title: "5. الطرد المركزي", 
-      desc: "فصل المخاليط (كبلازما الدم) بتطبيق قوة طرد مركزي ودوران سريع جداً؛ فتترسب الجسيمات حسب كثافتها وحجمها."
+      id: 4, title: "5. الطرد المركزي",
+      desc: "تطبيق قوة طرد مركزي هائلة وسرعة دوران فائقة لفصل مكونات الدم؛ تترسب الكريات الحمراء بالقاع لثقلها، بينما تطفو البلازما الصفراء للأعلى."
     },
     {
-      id: 5, title: "6. الكروماتوغرافيا", 
-      desc: "الطور المتحرك (المذيب) يسحب مكونات العينة (الحبر) عبر الطور الثابت (الورقة) بسرعات مختلفة فتنفصل الألوان."
+      id: 5, title: "6. الكروماتوغرافيا",
+      desc: "فصل مكونات خليط الألوان اعتماداً على سرعة انتشارها عبر الطور الثابت (الورقة) محولة بالطور المتحرك (المذيب)؛ فتظهر تدرجات ألوان العينة."
     },
     {
-      id: 6, title: "7. التحليل الكهربائي", 
-      desc: "تمرير تيار كهربائي لتفكيك السائل. في الماء يتحرر حجمان من غاز الهيدروجين (كاثود) وحجم واحد من غاز الأوكسجين (أنود)."
+      id: 6, title: "7. التحليل الكهربائي",
+      desc: "تحلل الماء كهربائياً لغازين: غاز الهيدروجين عند القطب السالب (الكاثود) بحجمين، وغاز الأوكسجين عند القطب الموجب (الأنود) بحجم واحد (بنسبة 2:1)."
     }
   ];
 
-  // بناء أزرار التبويبات
   methods.forEach((m, idx) => {
     const btn = document.createElement("button");
     btn.className = `tab-btn ${idx === 0 ? 'active' : ''}`;
@@ -150,50 +177,109 @@
   function selectMethod(idx) {
     activeMethod = idx;
     document.querySelectorAll(".tab-btn").forEach((b, i) => b.className = i === idx ? "tab-btn active" : "tab-btn");
-    infoTitle.innerText = methods[idx].title.substring(3);
+    infoTitle.innerText = methods[idx].title;
     infoText.innerText = methods[idx].desc;
     resetProcess();
   }
 
   function toggleProcess() {
-    if(progress >= 1) return resetProcess();
-    isRunning = !isRunning;
-    startBtn.innerText = isRunning ? "⏸ إيقاف موقت" : "▶ متابعة الفصل";
-    startBtn.style.background = isRunning ? "#f59e0b" : "#10b981";
+    if (progress >= 1) return resetProcess();
+    if (!isRunning) {
+      isRunning = true;
+      startTime = performance.now() - elapsedBeforePause;
+      startBtn.innerText = "⏸ إيقاف مؤقت";
+      startBtn.style.background = "#f59e0b";
+      statusText.innerText = "التجربة جارية...";
+    } else {
+      isRunning = false;
+      elapsedBeforePause = performance.now() - startTime;
+      startBtn.innerText = "▶ استئناف الفصل";
+      startBtn.style.background = "#10b981";
+      statusText.innerText = "موقوف مؤقتاً";
+    }
   }
 
   function resetProcess() {
     isRunning = false;
     progress = 0;
-    particles = [];
-    startBtn.innerText = "▶ بدء عملية الفصل";
+    startTime = null;
+    elapsedBeforePause = 0;
+    progressBar.style.width = "0%";
+    timerText.innerText = "المدة: 15 ثانية";
+    statusText.innerText = "جاهز للبدء";
+    startBtn.innerText = "▶ بدء عملية الفصل (15 ثانية)";
     startBtn.style.background = "#10b981";
     initParticles();
   }
 
   function initParticles() {
-    if(activeMethod === 0) { // الترشيح: قطرات ماء
-      for(let i=0; i<30; i++) particles.push({ x: 200 + Math.random()*20, y: 150 + Math.random()*50, speed: 1 + Math.random()*2 });
-    }
-    else if(activeMethod === 2) { // التبخير: بخار
-      for(let i=0; i<40; i++) particles.push({ x: 170 + Math.random()*80, y: 180 + Math.random()*20, speed: 0.5 + Math.random(), phase: Math.random()*Math.PI*2 });
-    }
-    else if(activeMethod === 6) { // التحليل الكهربائي: فقاعات
-      for(let i=0; i<60; i++) particles.push({ isH2: i%3!==0, y: 220 + Math.random()*30, offset: Math.random()*10 });
+    particles = [];
+    if (activeMethod === 0) {
+      for (let i = 0; i < 25; i++) particles.push({ x: 215 + (Math.random() - 0.5) * 6, y: 175 + Math.random() * 50, speed: 1.2 + Math.random() });
+    } else if (activeMethod === 2) {
+      for (let i = 0; i < 35; i++) particles.push({ x: 170 + Math.random() * 100, y: 190, vy: 0.6 + Math.random() * 0.8, phase: Math.random() * 6.28 });
+    } else if (activeMethod === 6) {
+      for (let i = 0; i < 50; i++) particles.push({ isH2: i % 3 !== 0, y: 220 + Math.random() * 30, offset: (Math.random() - 0.5) * 12, vy: 0.8 + Math.random() * 0.8 });
     }
   }
 
-  // المحرك الرسومي
+  // رسم فقاعة شرح (Callout Bubble)
+  function drawBubble(text, x, y, align = "right", color = "#38bdf8") {
+    ctx.save();
+    ctx.font = "bold 11px 'Cairo', sans-serif";
+    const textWidth = ctx.measureText(text).width;
+    const padding = 6;
+    const boxW = textWidth + padding * 2;
+    const boxH = 22;
+    const boxX = align === "right" ? x + 15 : x - boxW - 15;
+    const boxY = y - boxH / 2;
+
+    // خط الإشارة
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(align === "right" ? x + 15 : x - 15, y);
+    ctx.stroke();
+
+    // صندوق الفقاعة
+    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // النص
+    ctx.fillStyle = "#f8fafc";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, boxX + boxW / 2, boxY + boxH / 2);
+    ctx.restore();
+  }
+
+  // حلقة الرسم والتحديث
   function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if(isRunning && progress < 1) {
-      // سرعة التقدم تختلف حسب التجربة
-      let speed = (activeMethod === 4 || activeMethod === 5) ? 0.003 : 0.005;
-      progress += speed;
-      if(progress >= 1) { progress = 1; isRunning = false; startBtn.innerText = "✅ اكتمل الفصل"; startBtn.style.background = "#3b82f6"; }
+    if (isRunning) {
+      const now = performance.now();
+      const elapsed = now - startTime;
+      progress = Math.min(1, elapsed / SIM_DURATION_MS);
+      progressBar.style.width = (progress * 100).toFixed(1) + "%";
+      const remainingSec = Math.ceil((SIM_DURATION_MS - elapsed) / 1000);
+      timerText.innerText = `متبقي: ${Math.max(0, remainingSec)} ثانية (${Math.round(progress * 100)}%)`;
+
+      if (progress >= 1) {
+        progress = 1;
+        isRunning = false;
+        startBtn.innerText = "✅ اكتمل الفصل بالكامل";
+        startBtn.style.background = "#0284c7";
+        statusText.innerText = "اكتملت التجربة بنجاح";
+      }
     }
 
-    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     switch(activeMethod) {
       case 0: drawFiltration(); break;
       case 1: drawSepFunnel(); break;
@@ -203,202 +289,368 @@
       case 5: drawChromatography(); break;
       case 6: drawElectrolysis(); break;
     }
-    ctx.restore();
+
     requestAnimationFrame(draw);
   }
 
-  // --- دوال رسم التجارب ---
-
+  // 1. الترشيح
   function drawFiltration() {
-    // دورق سفلي
+    ctx.save();
+    // الكأس السفلي
     ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3;
-    ctx.strokeRect(170, 200, 80, 90);
-    // ماء مفلتر
-    let waterH = progress * 60;
-    ctx.fillStyle = "rgba(56, 189, 248, 0.4)"; ctx.fillRect(172, 290 - waterH, 76, waterH);
-    
-    // القمع
-    ctx.beginPath(); ctx.moveTo(150, 80); ctx.lineTo(270, 80); ctx.lineTo(220, 160); ctx.lineTo(200, 160); ctx.closePath(); ctx.stroke();
-    ctx.fillRect(205, 160, 10, 30); // أنبوب القمع
-    // ورقة الترشيح
-    ctx.strokeStyle = "#f1f5f9"; ctx.beginPath(); ctx.moveTo(160, 85); ctx.lineTo(210, 155); ctx.lineTo(260, 85); ctx.stroke();
-    // الرمل والماء المختلط
-    let mixH = (1 - progress) * 60;
-    if(mixH > 0) {
-      ctx.fillStyle = "rgba(180, 83, 9, 0.6)";
-      ctx.beginPath(); ctx.moveTo(210 - mixH*0.6, 155 - mixH); ctx.lineTo(210 + mixH*0.6, 155 - mixH); ctx.lineTo(210, 155); ctx.fill();
-    }
-    // الرمل المترسب (ثابت)
-    ctx.fillStyle = "#92400e";
-    ctx.beginPath(); ctx.moveTo(195, 120); ctx.lineTo(225, 120); ctx.lineTo(210, 155); ctx.fill();
+    ctx.strokeRect(175, 190, 90, 90);
+    let waterH = progress * 65;
+    ctx.fillStyle = "rgba(56, 189, 248, 0.4)"; ctx.fillRect(177, 280 - waterH, 86, waterH);
 
-    // قطرات نازلة
-    if(isRunning && mixH > 0) {
+    // القمع الزجاجي
+    ctx.beginPath(); ctx.moveTo(150, 70); ctx.lineTo(290, 70); ctx.lineTo(225, 155); ctx.lineTo(215, 155); ctx.closePath(); ctx.stroke();
+    ctx.strokeRect(215, 155, 10, 30);
+
+    // ورقة الترشيح
+    ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(160, 75); ctx.lineTo(220, 150); ctx.lineTo(280, 75); ctx.stroke();
+
+    // خليط الرمل والماء
+    let mixH = (1 - progress) * 55;
+    if (mixH > 0) {
+      ctx.fillStyle = "rgba(180, 83, 9, 0.6)";
+      ctx.beginPath(); ctx.moveTo(220 - mixH * 0.7, 150 - mixH); ctx.lineTo(220 + mixH * 0.7, 150 - mixH); ctx.lineTo(220, 150); ctx.fill();
+    }
+    // رمل محتجز في ورقة الترشيح
+    ctx.fillStyle = "#b45309";
+    ctx.beginPath(); ctx.moveTo(200, 115); ctx.lineTo(240, 115); ctx.lineTo(220, 150); ctx.fill();
+
+    // قطرات الراشح
+    if (isRunning && mixH > 0) {
       ctx.fillStyle = "#38bdf8";
       particles.forEach(p => {
         p.y += p.speed;
-        if(p.y > 290 - waterH) p.y = 190;
-        ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, 6); ctx.fill();
+        if (p.y > 280 - waterH) p.y = 185;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, 6.28); ctx.fill();
       });
     }
+
+    // فقاعات الشرح
+    drawBubble("ورقة الترشيح: تحتجز الرمل الصلب", 260, 95, "right", "#fbbf24");
+    drawBubble("الراشح: ماء نقي يمر عبر المسامات", 175, 250, "left", "#38bdf8");
+    ctx.restore();
   }
 
+  // 2. قمع الفصل
   function drawSepFunnel() {
-    // دورق استقبال
-    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(170, 220, 80, 70);
-    let waterCollected = progress * 60;
-    ctx.fillStyle = "rgba(56, 189, 248, 0.6)"; ctx.fillRect(172, 290 - waterCollected, 76, waterCollected);
-
-    // قمع الفصل
-    ctx.beginPath(); ctx.moveTo(160, 50); ctx.lineTo(260, 50); 
-    ctx.quadraticCurveTo(270, 130, 220, 180); ctx.lineTo(200, 180); 
-    ctx.quadraticCurveTo(150, 130, 160, 50); ctx.stroke();
-    ctx.strokeRect(205, 180, 10, 20);
-    // الصمام
-    ctx.fillStyle = isRunning ? "#10b981" : "#ef4444"; ctx.fillRect(195, 185, 30, 6);
-
-    // السوائل بالداخل
     ctx.save();
-    ctx.clip(); // قص الرسم داخل القمع
-    let waterLeft = 60 - progress * 60;
-    let oilY = 140 - waterLeft;
-    // زيت (طبقة عليا - كثافة أقل)
-    ctx.fillStyle = "rgba(251, 191, 36, 0.8)"; ctx.fillRect(150, oilY - 40, 120, 40);
-    // ماء (طبقة سفلى - كثافة أعلى)
-    ctx.fillStyle = "rgba(56, 189, 248, 0.6)"; ctx.fillRect(150, oilY, 120, waterLeft + 50);
+    // الكأس السفلي
+    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(175, 215, 90, 75);
+    let waterCollected = progress * 65;
+    ctx.fillStyle = "rgba(56, 189, 248, 0.6)"; ctx.fillRect(177, 290 - waterCollected, 86, waterCollected);
+
+    // القمع المخروطي
+    ctx.beginPath(); ctx.moveTo(165, 45); ctx.lineTo(275, 45);
+    ctx.quadraticCurveTo(285, 125, 226, 175); ctx.lineTo(214, 175);
+    ctx.quadraticCurveTo(155, 125, 165, 45); ctx.stroke();
+    ctx.strokeRect(216, 175, 8, 25);
+
+    // صمام الفصل
+    ctx.fillStyle = isRunning ? "#10b981" : "#ef4444"; ctx.fillRect(205, 182, 30, 8);
+
+    // السوائل داخل القمع
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(166, 46); ctx.lineTo(274, 46);
+    ctx.quadraticCurveTo(284, 125, 225, 175); ctx.lineTo(215, 175);
+    ctx.quadraticCurveTo(156, 125, 166, 46); ctx.clip();
+
+    let waterLeft = 60 * (1 - progress);
+    let oilTopY = 65;
+    let waterTopY = 175 - waterLeft;
+
+    // طبقة الزيت (كثافة أقل)
+    ctx.fillStyle = "rgba(245, 158, 11, 0.85)";
+    ctx.fillRect(150, oilTopY, 140, waterTopY - oilTopY);
+
+    // طبقة الماء (كثافة أعلى)
+    ctx.fillStyle = "rgba(56, 189, 248, 0.65)";
+    ctx.fillRect(150, waterTopY, 140, waterLeft + 20);
     ctx.restore();
 
-    // خط النزول
-    if(isRunning && progress < 1) { ctx.fillStyle = "rgba(56, 189, 248, 0.6)"; ctx.fillRect(208, 200, 4, 90 - waterCollected); }
+    // خيط الماء النازل
+    if (isRunning && progress < 1) {
+      ctx.fillStyle = "rgba(56, 189, 248, 0.6)";
+      ctx.fillRect(218, 200, 4, 90 - waterCollected);
+    }
+
+    // فقاعات الشرح
+    drawBubble("الزيت يطفو (كثافة أقل)", 280, 80, "right", "#f59e0b");
+    drawBubble("الماء بالأسفل (كثافة أعلى)", 270, 150, "right", "#38bdf8");
+    drawBubble(isRunning ? "الصمام مفتوح للتفريغ" : "صمام التحكم مغلق", 205, 186, "left", isRunning ? "#10b981" : "#ef4444");
+    ctx.restore();
   }
 
+  // 3. التبخير
   function drawEvaporation() {
-    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(150, 140, 120, 100);
-    let waterH = (1 - progress) * 70;
-    if(waterH > 0) { ctx.fillStyle = "rgba(56, 189, 248, 0.3)"; ctx.fillRect(152, 240 - waterH, 116, waterH); }
-    
-    // الملح المترسب
-    let saltH = progress * 15;
-    ctx.fillStyle = "#f8fafc"; ctx.fillRect(152, 240 - saltH, 116, saltH);
+    ctx.save();
+    // طبق التبخير
+    ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(220, 180, 75, 0, Math.PI); ctx.stroke();
 
-    // موقد النار
-    ctx.fillStyle = "#334155"; ctx.fillRect(180, 250, 60, 20);
-    if(isRunning && progress < 1) {
-      ctx.fillStyle = "#ef4444"; ctx.beginPath(); ctx.moveTo(210, 235); ctx.lineTo(190, 250); ctx.lineTo(230, 250); ctx.fill();
-      ctx.fillStyle = "#f59e0b"; ctx.beginPath(); ctx.moveTo(210, 240); ctx.lineTo(200, 250); ctx.lineTo(220, 250); ctx.fill();
-      
+    let waterH = (1 - progress) * 35;
+    if (waterH > 0) {
+      ctx.fillStyle = "rgba(56, 189, 248, 0.35)";
+      ctx.beginPath(); ctx.arc(220, 180, 73, 0.2, Math.PI - 0.2); ctx.fill();
+    }
+
+    // الملح المتبقي
+    let saltW = progress * 60;
+    let saltH = progress * 14;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.ellipse(220, 180 + 70 - saltH / 2, saltW, saltH, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // موقد اللهب
+    ctx.fillStyle = "#334155"; ctx.fillRect(190, 265, 60, 15);
+    ctx.fillRect(215, 245, 10, 20);
+    if (isRunning && progress < 1) {
+      ctx.fillStyle = "#ef4444"; ctx.beginPath(); ctx.moveTo(220, 225); ctx.lineTo(205, 245); ctx.lineTo(235, 245); ctx.fill();
+      ctx.fillStyle = "#fbbf24"; ctx.beginPath(); ctx.moveTo(220, 230); ctx.lineTo(212, 245); ctx.lineTo(228, 245); ctx.fill();
+
       // بخار متصاعد
-      ctx.fillStyle = "rgba(255,255,255,0.4)";
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
       particles.forEach(p => {
-        p.y -= p.speed; p.x += Math.sin(p.phase)*0.5; p.phase+=0.1;
-        if(p.y < 50) { p.y = 240 - waterH; p.x = 170 + Math.random()*80; }
-        ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 6); ctx.fill();
+        p.y -= p.vy; p.x += Math.sin(p.phase) * 0.5; p.phase += 0.05;
+        if (p.y < 40) { p.y = 190; p.x = 170 + Math.random() * 100; }
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, 6.28); ctx.fill();
       });
     }
+
+    // فقاعات الشرح
+    drawBubble("بخار الماء يتصاعد بالحرارة", 270, 80, "right", "#cbd5e1");
+    drawBubble("الملح الصلب يترسب في القاع", 220, 245, "left", "#ffffff");
+    ctx.restore();
   }
 
+  // 4. التبلور
   function drawCrystallization() {
-    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(160, 100, 100, 130);
-    ctx.fillStyle = `rgba(16, 185, 129, ${0.7 - progress*0.4})`; // المحلول يصفو
-    ctx.fillRect(162, 120, 96, 110);
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(170, 90, 100, 140);
+    ctx.fillStyle = `rgba(16, 185, 129, ${0.55 - progress * 0.35})`;
+    ctx.fillRect(172, 110, 96, 118);
 
-    // بلورات تنمو
-    let size = progress * 18;
-    ctx.fillStyle = "#34d399"; ctx.strokeStyle = "#059669"; ctx.lineWidth = 2;
-    [[210,210], [180,215], [230,220], [195,200], [220,190]].forEach(pos => {
-      ctx.save(); ctx.translate(pos[0], pos[1]); ctx.rotate(pos[0]); 
-      ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size/1.5, 0); ctx.lineTo(0, size); ctx.lineTo(-size/1.5, 0); ctx.closePath();
-      ctx.fill(); ctx.stroke(); ctx.restore();
+    // بلورات سداسية تنمو هندسياً
+    let crystalSize = progress * 16;
+    ctx.fillStyle = "#6ee7b7"; ctx.strokeStyle = "#059669"; ctx.lineWidth = 1.5;
+    const crystalCoords = [[220, 200], [195, 210], [245, 212], [210, 175], [235, 170], [200, 145], [240, 140]];
+
+    crystalCoords.forEach((pt, i) => {
+      let sz = Math.min(crystalSize, 16);
+      if (progress > i * 0.12) {
+        ctx.save(); ctx.translate(pt[0], pt[1]); ctx.rotate(i * 0.8);
+        ctx.beginPath();
+        for (let a = 0; a < 6; a++) {
+          let angle = a * Math.PI / 3;
+          let rx = Math.cos(angle) * sz;
+          let ry = Math.sin(angle) * (sz * 0.65);
+          if (a === 0) ctx.moveTo(rx, ry); else ctx.lineTo(rx, ry);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+      }
     });
+
+    drawBubble("محلول نقي يبرد تدريجياً", 170, 120, "left", "#34d399");
+    drawBubble("بلورات صلبة نقية منتظمة الشكل", 270, 190, "right", "#6ee7b7");
+    ctx.restore();
   }
 
+  // 5. الطرد المركزي (تصميم مطور واحترافي)
   function drawCentrifuge() {
-    // رسم جهاز الطرد (منظور علوي)
-    ctx.translate(210, 160);
-    let rot = isRunning ? Date.now() * 0.01 : 0;
-    ctx.rotate(rot);
-    ctx.fillStyle = "#334155"; ctx.beginPath(); ctx.arc(0, 0, 90, 0, 6.28); ctx.fill();
-    ctx.fillStyle = "#0f172a"; ctx.beginPath(); ctx.arc(0, 0, 20, 0, 6.28); ctx.fill();
-    
-    for(let i=0; i<4; i++) {
-      ctx.save(); ctx.rotate((Math.PI/2) * i);
-      ctx.fillStyle = "rgba(255,255,255,0.1)"; ctx.fillRect(-15, 20, 30, 60); // حامل الأنبوب
-      ctx.restore();
-    }
-    ctx.resetTransform();
+    ctx.save();
 
-    // أنبوب العرض الجانبي
-    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(350, 240, 15, 0, Math.PI); ctx.lineTo(335, 100); ctx.lineTo(365, 100); ctx.closePath(); ctx.stroke();
-    
-    // انفصال الدم
-    let plasmaH = progress * 70;
-    let cellsH = 140 - plasmaH;
-    ctx.fillStyle = "#ef4444"; ctx.fillRect(337, 240 - cellsH, 26, cellsH); // خلايا حمراء
-    ctx.fillStyle = "rgba(251, 191, 36, 0.8)"; ctx.fillRect(337, 100, 26, plasmaH); // بلازما (أصفر)
-    
-    if(progress < 1) { // دمج الألوان بالبداية
-      ctx.fillStyle = `rgba(239, 68, 68, ${1-progress})`; ctx.fillRect(337, 100, 26, 140);
+    // 1. جسم جهاز الطرد المركزي المخبري (يسار الشاشة)
+    ctx.fillStyle = "#1e293b"; ctx.strokeStyle = "#475569"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(30, 90, 180, 170, 16); ctx.fill(); ctx.stroke();
+
+    // غطاء الغرفة الدوارة الداخلي
+    ctx.fillStyle = "#0f172a"; ctx.strokeStyle = "#334155";
+    ctx.beginPath(); ctx.arc(120, 160, 60, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+    // شاشة رقمية للجهاز
+    ctx.fillStyle = "#000000"; ctx.fillRect(65, 230, 110, 22);
+    ctx.fillStyle = isRunning ? "#10b981" : "#64748b";
+    ctx.font = "bold 10.5px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(isRunning ? "SPEED: 4000 RPM" : "STANDBY: 0 RPM", 120, 245);
+
+    // الأذرع الدوارة والأنابيب داخل الحجرة
+    ctx.save();
+    ctx.translate(120, 160);
+    let spinAngle = isRunning ? performance.now() * 0.04 : 0;
+    ctx.rotate(spinAngle);
+    ctx.fillStyle = "#334155";
+    for (let a = 0; a < 4; a++) {
+      ctx.rotate(Math.PI / 2);
+      ctx.fillRect(-6, -45, 12, 35); // أنبوب دوار
+      ctx.fillStyle = isRunning ? "rgba(239, 68, 68, 0.4)" : "#ef4444";
+      ctx.fillRect(-5, -42, 10, 30);
     }
+    ctx.restore();
+
+    // 2. أنبوب العرض الطبي المكبر (يمين الشاشة)
+    const tubeX = 295, tubeY = 70, tubeW = 44, tubeH = 190;
+    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(tubeX, tubeY);
+    ctx.lineTo(tubeX, tubeY + tubeH - 22);
+    ctx.arc(tubeX + tubeW / 2, tubeY + tubeH - 22, tubeW / 2, 0, Math.PI);
+    ctx.lineTo(tubeX + tubeW, tubeY);
+    ctx.stroke();
+
+    // غطاء الأنبوب الطبي (أزرق غامق)
+    ctx.fillStyle = "#2563eb";
+    ctx.fillRect(tubeX - 3, tubeY - 14, tubeW + 6, 14);
+
+    // قص الرسم داخل الأنبوب
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(tubeX + 2, tubeY);
+    ctx.lineTo(tubeX + 2, tubeY + tubeH - 22);
+    ctx.arc(tubeX + tubeW / 2, tubeY + tubeH - 22, tubeW / 2 - 2, 0, Math.PI);
+    ctx.lineTo(tubeX + tubeW - 2, tubeY);
+    ctx.clip();
+
+    // محاكاة انفصال مكونات الدم الثلاثة
+    let totalFluidH = tubeH - 10;
+    let plasmaTargetH = totalFluidH * 0.55; // 55% بلازما
+    let rbcTargetH = totalFluidH * 0.43;    // 43% كريات حمر
+    let buffyTargetH = totalFluidH * 0.02;  // 2% كريات بيض وصفائح
+
+    let curPlasmaH = plasmaTargetH * progress;
+    let curRbcH = rbcTargetH * progress;
+    let curMixedH = totalFluidH - (curPlasmaH + curRbcH);
+
+    let startDrawY = tubeY + 5;
+
+    // بلازما (أصفر رائق)
+    if (curPlasmaH > 0) {
+      ctx.fillStyle = "#facc15";
+      ctx.fillRect(tubeX, startDrawY, tubeW, curPlasmaH);
+    }
+    // طبقة رقيقة بيضاء Buffy Coat
+    if (progress > 0.6) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(tubeX, startDrawY + curPlasmaH - 2, tubeW, 4);
+    }
+    // دم مختلط لسه ما انفصل كلياً
+    if (curMixedH > 0) {
+      ctx.fillStyle = "#991b1b";
+      ctx.fillRect(tubeX, startDrawY + curPlasmaH, tubeW, curMixedH);
+    }
+    // كريات الدم الحمراء المترسبة بالقاع
+    if (curRbcH > 0) {
+      ctx.fillStyle = "#450a0a";
+      ctx.fillRect(tubeX, startDrawY + curPlasmaH + curMixedH, tubeW, curRbcH + 30);
+    }
+    ctx.restore();
+
+    // فقاعات الشرح التوضيحية
+    drawBubble("جهاز الطرد المركزي (دوران سريع)", 120, 85, "left", "#38bdf8");
+    drawBubble("بلازما الدم (كثافة أقل تطفو 55%)", tubeX + tubeW, tubeY + 35, "right", "#facc15");
+    drawBubble("كريات الدم الحمراء (أعلى كثافة تترسب)", tubeX + tubeW, tubeY + tubeH - 30, "right", "#ef4444");
+    ctx.restore();
   }
 
+  // 6. الكروماتوغرافيا
   function drawChromatography() {
-    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(150, 100, 120, 160);
-    let solventY = 240 - progress * 120;
-    ctx.fillStyle = "rgba(56, 189, 248, 0.2)"; ctx.fillRect(152, solventY, 116, 260 - solventY); // المذيب
-    
-    // ورقة الترشيح (الطور الثابت)
-    ctx.fillStyle = "#f8fafc"; ctx.fillRect(180, 80, 60, 170);
-    ctx.strokeStyle = "#cbd5e1"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(180, 230); ctx.lineTo(240, 230); ctx.stroke(); // خط البداية
+    ctx.save();
+    // الحوض الزجاجي
+    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(150, 70, 140, 200);
 
-    // الألوان تنفصل
-    ctx.globalAlpha = 0.8;
-    ctx.fillStyle = "#ef4444"; ctx.beginPath(); ctx.arc(210, 230 - progress*100, 6 + progress*4, 0, 6.28); ctx.fill(); // أحمر أسرع
-    ctx.fillStyle = "#38bdf8"; ctx.beginPath(); ctx.arc(210, 230 - progress*60, 6 + progress*4, 0, 6.28); ctx.fill();  // أزرق متوسط
-    ctx.fillStyle = "#fbbf24"; ctx.beginPath(); ctx.arc(210, 230 - progress*30, 6 + progress*4, 0, 6.28); ctx.fill();  // أصفر أبطأ
-    ctx.globalAlpha = 1.0;
+    // الطور المتحرك (المذيب)
+    let solventRise = progress * 135;
+    let solventY = 240 - solventRise;
+    ctx.fillStyle = "rgba(56, 189, 248, 0.25)"; ctx.fillRect(152, 240, 136, 28);
+
+    // ورقة الترشيح (الطور الثابت)
+    ctx.fillStyle = "#f8fafc"; ctx.fillRect(185, 55, 70, 205);
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(185, 230); ctx.lineTo(255, 230); ctx.stroke();
+
+    // صعود المذيب في الورقة
+    ctx.fillStyle = "rgba(224, 242, 254, 0.5)";
+    ctx.fillRect(185, 230 - solventRise, 70, solventRise);
+
+    // انفصال بقع الألوان حسب سرعة انتشارها
+    let dotBaseY = 230;
+    // أحمر (أسرع انتشاراً)
+    ctx.fillStyle = "#ef4444"; ctx.beginPath(); ctx.arc(220, dotBaseY - progress * 115, 6, 0, 6.28); ctx.fill();
+    // أزرق (متوسط)
+    ctx.fillStyle = "#0284c7"; ctx.beginPath(); ctx.arc(220, dotBaseY - progress * 75, 6, 0, 6.28); ctx.fill();
+    // أصفر (أبطأ التصاقاً)
+    ctx.fillStyle = "#f59e0b"; ctx.beginPath(); ctx.arc(220, dotBaseY - progress * 38, 6, 0, 6.28); ctx.fill();
+
+    // فقاعات الشرح
+    drawBubble("الطور الثابت: ورقة الترشيح", 185, 75, "left", "#cbd5e1");
+    drawBubble("الطور المتحرك: صعود المذيب بالخاصية الشعرية", 185, solventY, "left", "#38bdf8");
+    drawBubble("انفصال الأصباغ لاختلاف سرعة الانتشار", 255, 140, "right", "#ef4444");
+    ctx.restore();
   }
 
+  // 7. التحليل الكهربائي للماء
   function drawElectrolysis() {
-    // وعاء الماء
-    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(120, 140, 180, 120);
-    ctx.fillStyle = "rgba(56, 189, 248, 0.3)"; ctx.fillRect(122, 160, 176, 100);
+    ctx.save();
+    // حوض الماء
+    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3; ctx.strokeRect(120, 120, 200, 150);
+    ctx.fillStyle = "rgba(56, 189, 248, 0.2)"; ctx.fillRect(122, 140, 196, 128);
 
-    // أقطاب (غرافيت)
-    ctx.fillStyle = "#334155"; ctx.fillRect(160, 180, 10, 80); ctx.fillRect(250, 180, 10, 80);
-    
-    // أنابيب اختبار مقلوبة
-    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 2;
-    ctx.strokeRect(150, 100, 30, 120); ctx.strokeRect(240, 100, 30, 120);
+    // قطبا الغرافيت
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(165, 160, 12, 100); // كاثود
+    ctx.fillRect(265, 160, 12, 100); // أنود
 
-    // مستوى الماء داخل الأنابيب (الغاز يزيح الماء)
-    let h2Vol = progress * 80;  // الكاثود (سالب)
-    let o2Vol = progress * 40;  // الأنود (موجب) حجم الأوكسجين نصف الهيدروجين
-    
-    // الغاز
-    ctx.fillStyle = "rgba(255,255,255,0.8)"; 
-    ctx.fillRect(152, 102, 26, h2Vol); ctx.fillRect(242, 102, 26, o2Vol);
-    // بقية الماء
-    ctx.fillStyle = "rgba(56, 189, 248, 0.5)"; 
-    ctx.fillRect(152, 102 + h2Vol, 26, 116 - h2Vol); ctx.fillRect(242, 102 + o2Vol, 26, 116 - o2Vol);
+    // أنبوبتا اختبار مقلوبتان
+    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2;
+    ctx.strokeRect(155, 80, 32, 140);
+    ctx.strokeRect(255, 80, 32, 140);
 
-    // بطارية وأسلاك
-    ctx.fillStyle = "#ef4444"; ctx.fillRect(205, 30, 30, 20); ctx.fillStyle = "#f8fafc"; ctx.fillText("+", 215, 45); // أنود
-    ctx.fillStyle = "#0f172a"; ctx.fillRect(185, 30, 20, 20); ctx.fillStyle = "#f8fafc"; ctx.fillText("-", 192, 45); // كاثود
-    ctx.strokeStyle = "#94a3b8"; ctx.beginPath(); ctx.moveTo(195, 50); ctx.lineTo(195, 80); ctx.lineTo(165, 80); ctx.lineTo(165, 180); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(220, 50); ctx.lineTo(220, 80); ctx.lineTo(255, 80); ctx.lineTo(255, 180); ctx.stroke();
+    // إزاحة الماء بالغاز (الهيدروجين ضعف الأوكسجين 2:1)
+    let h2Height = progress * 90; // كاثود (سالب)
+    let o2Height = progress * 45; // أنود (موجب)
 
-    // فقاعات
-    if(isRunning && progress < 1) {
-      ctx.fillStyle = "#fff";
+    // غاز الهيدروجين
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.fillRect(157, 82, 28, h2Height);
+    // غاز الأوكسجين
+    ctx.fillRect(257, 82, 28, o2Height);
+
+    // الماء داخل الأنابيب
+    ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
+    ctx.fillRect(157, 82 + h2Height, 28, 136 - h2Height);
+    ctx.fillRect(257, 82 + o2Height, 28, 136 - o2Height);
+
+    // البطارية والتوصيل
+    ctx.fillStyle = "#ef4444"; ctx.fillRect(225, 25, 30, 22); ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif"; ctx.fillText("+", 235, 41);
+    ctx.fillStyle = "#0f172a"; ctx.fillRect(185, 25, 30, 22); ctx.fillStyle = "#fff"; ctx.fillText("-", 197, 41);
+
+    // أسلاك التوصيل
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(200, 47); ctx.lineTo(200, 65); ctx.lineTo(171, 65); ctx.lineTo(171, 160); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(240, 47); ctx.lineTo(240, 65); ctx.lineTo(271, 65); ctx.lineTo(271, 160); ctx.stroke();
+
+    // فقاعات الغاز الصاعدة
+    if (isRunning && progress < 1) {
+      ctx.fillStyle = "#ffffff";
       particles.forEach(p => {
-        p.y -= 2;
-        let startX = p.isH2 ? 160 : 250;
-        let limitY = p.isH2 ? 102 + h2Vol : 102 + o2Vol;
-        if(p.y < limitY) p.y = 250;
-        ctx.beginPath(); ctx.arc(startX + p.offset, p.y, 2, 0, 6); ctx.fill();
+        p.y -= p.vy;
+        let x = p.isH2 ? 171 + p.offset : 271 + p.offset;
+        let limit = p.isH2 ? 82 + h2Height : 82 + o2Height;
+        if (p.y < limit) p.y = 250;
+        ctx.beginPath(); ctx.arc(x, p.y, 2, 0, 6.28); ctx.fill();
       });
     }
+
+    // فقاعات الشرح
+    drawBubble("المهبط (-): غاز الهيدروجين H₂ (حجمان)", 155, 100, "left", "#38bdf8");
+    drawBubble("المصعد (+): غاز الأوكسجين O₂ (حجم واحد)", 287, 100, "right", "#ef4444");
+    drawBubble("نسبة الغازين الناتجين: 2 إلى 1", 220, 155, "left", "#10b981");
+    ctx.restore();
   }
 
   initParticles();
