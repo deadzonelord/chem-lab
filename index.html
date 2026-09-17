@@ -35,7 +35,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px 16px 40px;
+      padding: 16px 14px 40px;
     }
 
     .container {
@@ -43,19 +43,18 @@
       max-width: 520px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
 
-    /* رأس الصفحة وهوية الأستاذ */
+    /* رأس الصفحة */
     .header-card {
       background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
       border: 1px solid var(--card-border);
       border-radius: 20px;
-      padding: 24px 20px;
+      padding: 22px 18px;
       text-align: center;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
       position: relative;
-      overflow: hidden;
     }
 
     .header-card::after {
@@ -77,23 +76,22 @@
       background: var(--accent-glow);
       border: 1px solid rgba(56, 189, 248, 0.3);
       color: var(--accent);
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 10px;
     }
 
     .title {
-      font-size: 22px;
+      font-size: 21px;
       font-weight: 800;
       line-height: 1.3;
       margin-bottom: 6px;
-      letter-spacing: -0.5px;
     }
 
     .teacher-badge {
       display: inline-block;
       margin-top: 6px;
-      font-size: 14.5px;
+      font-size: 14px;
       color: #cbd5e1;
       font-weight: 600;
       background: rgba(255, 255, 255, 0.04);
@@ -107,19 +105,39 @@
       font-weight: 700;
     }
 
-    /* قائمة المحاكيات */
-    .section-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-muted);
+    /* أقسام الفصول */
+    .chapter-section {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 4px;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .section-title::after {
-      content: '';
+    .chapter-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 4px;
+    }
+
+    .chapter-badge {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .chapter-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+
+    .chapter-line {
       flex: 1;
       height: 1px;
       background: var(--card-border);
@@ -128,21 +146,21 @@
     .modules-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
+    /* بطاقة المحاكاة */
     .sim-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 16px 18px;
+      border-radius: 14px;
+      padding: 14px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       text-decoration: none;
       color: inherit;
       transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s;
-      position: relative;
     }
 
     .sim-card.active:active {
@@ -152,7 +170,7 @@
     }
 
     .sim-card.disabled {
-      opacity: 0.6;
+      opacity: 0.55;
       cursor: not-allowed;
     }
 
@@ -160,14 +178,14 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      max-width: 75%;
+      max-width: 80%;
     }
 
     .sim-tag {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 6px;
+      padding: 2px 7px;
+      border-radius: 5px;
       display: inline-block;
       width: fit-content;
     }
@@ -185,26 +203,26 @@
     }
 
     .sim-title {
-      font-size: 15.5px;
+      font-size: 14.5px;
       font-weight: 700;
       color: #f1f5f9;
     }
 
     .sim-desc {
-      font-size: 12.5px;
+      font-size: 12px;
       color: var(--text-muted);
       line-height: 1.4;
     }
 
     .sim-btn-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
       background: rgba(255, 255, 255, 0.04);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
       border: 1px solid var(--card-border);
       flex-shrink: 0;
     }
@@ -218,7 +236,7 @@
     /* التذييل */
     .footer {
       text-align: center;
-      margin-top: 15px;
+      margin-top: 10px;
       font-size: 12px;
       color: #64748b;
     }
@@ -227,60 +245,117 @@
 <body>
 
 <div class="container">
-  <!-- الترويسة -->
+  <!-- رأس الصفحة -->
   <div class="header-card">
-    <div class="badge-grade">🧪 وزارة التربية العراقية • الأول متوسط</div>
+    <div class="badge-grade">🧪 الكيمياء التفاعلية • الأول متوسط</div>
     <h1 class="title">المختبر الكيميائي التفاعلي</h1>
     <div class="teacher-badge">
       إعداد وإشراف: <span class="teacher-name">الأستاذ حسين التميمي</span>
     </div>
   </div>
 
-  <!-- قسم التجارب -->
-  <div class="section-title">التجارب والمحاكيات المتاحة</div>
-
-  <div class="modules-list">
-    <!-- التجربة 1: جاهزة -->
-    <a href="matter.html" class="sim-card active">
-      <div class="sim-info">
-        <span class="sim-tag tag-active">🟢 جاهزة للتجربة</span>
-        <div class="sim-title">حالات المادة والديناميكا الحرارية</div>
-        <div class="sim-desc">سلوك الجزيئات (الصلبة، السائلة، الغازية) والاهتزاز وقوى التجاذب عند التسخين.</div>
-      </div>
-      <div class="sim-btn-icon">◀</div>
-    </a>
-
-    <!-- التجارب القادمة بالترتيب المنهجي -->
-    <div class="sim-card disabled">
-      <div class="sim-info">
-        <span class="sim-tag tag-upcoming">⏳ قريباً</span>
-        <div class="sim-title">ميزان موازنة المعادلات الكيميائية</div>
-        <div class="sim-desc">الميزان ذو الكفتين لحفظ الذرات وموازنة المواد المتفاعلة والناتجة.</div>
-      </div>
-      <div class="sim-btn-icon">🔒</div>
+  <!-- الفصل الأول -->
+  <div class="chapter-section">
+    <div class="chapter-header">
+      <span class="chapter-badge">الفصل 1</span>
+      <span class="chapter-title">خواص المادة</span>
+      <div class="chapter-line"></div>
     </div>
-
-    <div class="sim-card disabled">
-      <div class="sim-info">
-        <span class="sim-tag tag-upcoming">⏳ قريباً</span>
-        <div class="sim-title">بناء الذرة والتوزيع الإلكتروني</div>
-        <div class="sim-desc">ملء المدارات (1، 2، 3) واستنتاج العدد الذري والكتلي.</div>
+    <div class="modules-list">
+      <a href="matter.html" class="sim-card active">
+        <div class="sim-info">
+          <span class="sim-tag tag-active">🟢 متاح للتجربة</span>
+          <div class="sim-title">حالات المادة والديناميكا الحرارية</div>
+          <div class="sim-desc">سلوك الجزيئات (الصلبة، السائلة، الغازية) وقوى التجاذب والاهتزاز بالتسخين.</div>
+        </div>
+        <div class="sim-btn-icon">◀</div>
+      </a>
+      <div class="sim-card disabled">
+        <div class="sim-info">
+          <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+          <div class="sim-title">مختبر طرائق فصل المواد</div>
+          <div class="sim-desc">قمع الفصل للماء والزيت، التحليل الكهربائي للماء، والكروماتوغرافيا.</div>
+        </div>
+        <div class="sim-btn-icon">🔒</div>
       </div>
-      <div class="sim-btn-icon">🔒</div>
     </div>
+  </div>
 
-    <div class="sim-card disabled">
-      <div class="sim-info">
-        <span class="sim-tag tag-upcoming">⏳ قريباً</span>
-        <div class="sim-title">كاشف الروابط والتوصيل الكهربائي</div>
-        <div class="sim-desc">مقارنة التوصيل الكهربائي لمركبات الملح الأيونية والسكر التساهمية.</div>
+  <!-- الفصل الثاني -->
+  <div class="chapter-section">
+    <div class="chapter-header">
+      <span class="chapter-badge">الفصل 2</span>
+      <span class="chapter-title">الذرات والعناصر والمركبات</span>
+      <div class="chapter-line"></div>
+    </div>
+    <div class="modules-list">
+      <div class="sim-card disabled">
+        <div class="sim-info">
+          <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+          <div class="sim-title">بناء الذرة والتوزيع الإلكتروني</div>
+          <div class="sim-desc">ملء المدارات (1، 2، 3) واستنتاج العدد الذري والكتلي للعنصر.</div>
+        </div>
+        <div class="sim-btn-icon">🔒</div>
       </div>
-      <div class="sim-btn-icon">🔒</div>
+      <div class="sim-card disabled">
+        <div class="sim-info">
+          <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+          <div class="sim-title">كاشف الروابط والتوصيل الكهربائي</div>
+          <div class="sim-desc">اختبار المصباح الكهربائي بين المركبات الأيونية والمركبات التساهمية.</div>
+        </div>
+        <div class="sim-btn-icon">🔒</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الفصل الثالث -->
+  <div class="chapter-section">
+    <div class="chapter-header">
+      <span class="chapter-badge">الفصل 3</span>
+      <span class="chapter-title">ترتيب العناصر وأصنافها</span>
+      <div class="chapter-line"></div>
+    </div>
+    <div class="modules-list">
+      <div class="sim-card disabled">
+        <div class="sim-info">
+          <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+          <div class="sim-title">مستكشف الجدول الدوري التفاعلي</div>
+          <div class="sim-desc">تصنيف الفلزات واللافلزات وأشباه الفلزات وعوائل الزمر مع قراءة بطاقة العنصر.</div>
+        </div>
+        <div class="sim-btn-icon">🔒</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- الفصل الرابع -->
+  <div class="chapter-section">
+    <div class="chapter-header">
+      <span class="chapter-badge">الفصل 4</span>
+      <span class="chapter-title">التفاعلات الكيميائية والتعبير عنها</span>
+      <div class="chapter-line"></div>
+    </div>
+    <div class="modules-list">
+      <div class="sim-card disabled">
+        <div class="sim-info">
+          <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+          <div class="sim-title">ميزان موازنة المعادلات الكيميائية</div>
+          <div class="sim-desc">الميزان ذو الكفتين لحفظ الذرات وموازنة المتفاعلات والنواتج بصرياً.</div>
+        </div>
+        <div class="sim-btn-icon">🔒</div>
+      </div>
+      <div class="sim-card disabled">
+        <div class="sim-info">
+          <span class="sim-tag tag-upcoming">⏳ قريباً</span>
+          <div class="sim-title">دلائل حدوث التفاعل الكيميائي</div>
+          <div class="sim-desc">تجارب تحرر الغاز، الترسيب، وتآكل الفلزات في محاكاة تفاعلية.</div>
+        </div>
+        <div class="sim-btn-icon">🔒</div>
+      </div>
     </div>
   </div>
 
   <div class="footer">
-    تم تطوير المنصة بأحدث معايير الويب التفاعلية لخدمة طلبتنا الأعزاء.
+    تم إعداد هذه المنصة التعليمية لخدمة طلبتنا الأعزاء وتيسير استيعاب المفاهيم العلمية.
   </div>
 </div>
 
