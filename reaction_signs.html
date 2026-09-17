@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>دلائل حدوث التفاعل الكيميائي | أ. حسين التميمي</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+      margin: 0; padding: 10px; background-color: #0b0f19; color: #e2e8f0;
+      font-family: 'Cairo', system-ui, sans-serif; display: flex; flex-direction: column;
+      align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* شريط الرجوع والترويسة */
+    .top-nav { width: 100%; display: flex; justify-content: flex-start; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px; background: #1e293b;
+      color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px;
+      border-radius: 99px; text-decoration: none; font-size: 13px; font-weight: bold;
+    }
+    .back-btn:active { transform: scale(0.96); background: #334155; }
+
+    .header { text-align: center; }
+    .header h1 { font-size: 18px; margin: 0; color: #38bdf8; }
+    .header p { font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; }
+
+    /* شريط التبويبات للمحطات الست */
+    .stations-tabs {
+      display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+    }
+    .stations-tabs::-webkit-scrollbar { display: none; }
+    .st-btn {
+      flex: 0 0 auto; background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+      padding: 6px 10px; border-radius: 8px; font-size: 11.5px; font-weight: bold;
+      cursor: pointer; transition: all 0.2s; font-family: 'Cairo', sans-serif;
+    }
+    .st-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.3); }
+
+    /* مسرح الكانفاس التفاعلي */
+    .stage-wrapper {
+      position: relative; width: 100%; height: 230px; background: #111827; border-radius: 14px;
+      border: 1px solid #1f2937; box-shadow: 0 10px 25px rgba(0,0,0,0.5); display: flex;
+      justify-content: center; align-items: center; overflow: hidden;
+    }
+    canvas { display: block; width: 100%; max-width: 480px; height: 100%; }
+
+    /* رادار الحواس وأدلة الملاحظة */
+    .sensory-bar {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; background: #1e293b;
+      padding: 6px 10px; border-radius: 10px; border: 1px solid #334155; text-align: center;
+    }
+    .sensor-item {
+      display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 11px;
+      font-weight: 700; color: #64748b; padding: 4px; border-radius: 6px; background: #0f172a;
+    }
+    .sensor-item.active { color: #facc15; border: 1px solid #facc15; box-shadow: 0 0 8px rgba(250,204,21,0.25); }
+
+    /* أزرار التحكم والتشغيل */
+    .controls-panel {
+      width: 100%; background: #1e293b; padding: 10px 12px; border-radius: 12px;
+      display: flex; gap: 8px; border: 1px solid #334155;
+    }
+    .btn {
+      flex: 1; padding: 9px 0; border-radius: 8px; font-size: 13px; font-weight: bold;
+      cursor: pointer; font-family: 'Cairo', sans-serif; transition: 0.15s; border: none; text-align: center;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-action { background: #10b981; color: white; border: 1px solid #34d399; }
+    .btn-action.burning { background: #f59e0b; border-color: #fbbf24; }
+    .btn-reset { background: #334155; color: #f1f5f9; border: 1px solid #475569; flex: 0.45; }
+
+    /* تبديل حراري إضافي للمحطة 5 */
+    .sub-switch {
+      display: none; gap: 6px; margin-bottom: 2px;
+    }
+    .sub-btn {
+      flex: 1; background: #0f172a; border: 1px solid #334155; color: #94a3b8;
+      padding: 5px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;
+    }
+    .sub-btn.active { background: #0284c7; color: #fff; border-color: #38bdf8; }
+
+    /* صندوق التفسير العلمي المنهجي */
+    .info-card {
+      width: 100%; background: #0f172a; border-right: 4px solid #38bdf8;
+      border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.6; min-height: 75px;
+    }
+    .info-title { font-weight: bold; color: #38bdf8; margin-bottom: 2px; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="top-nav"><a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a></div>
+
+  <div class="header">
+    <h1>دلائل حدوث التفاعل الكيميائي</h1>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
+  </div>
+
+  <!-- شريط التبويبات للمحطات الست -->
+  <div class="stations-tabs" id="stationsTabs"></div>
+
+  <!-- تبديل طارد/ماص للمحطة 5 -->
+  <div class="sub-switch" id="thermalSwitch">
+    <button class="sub-btn active" id="btnExo" onclick="setThermalMode('exo')">🔥 تفاعل طارد (ارتفاع الحرارة)</button>
+    <button class="sub-btn" id="btnEndo" onclick="setThermalMode('endo')">❄️ تفاعل ماص (انخفاض وتجمد)</button>
+  </div>
+
+  <!-- مسرح الكانفاس التفاعلي -->
+  <div class="stage-wrapper">
+    <canvas id="reactionCanvas" width="480" height="230"></canvas>
+  </div>
+
+  <!-- رادار الحواس وأدلة الملاحظة -->
+  <div class="sensory-bar">
+    <div class="sensor-item" id="senseSight">👁️ حاسة البصر</div>
+    <div class="sensor-item" id="senseHearing">👂 حاسة السمع</div>
+    <div class="sensor-item" id="senseThermal">🌡️ الإحساس بالحرارة</div>
+  </div>
+
+  <!-- أزرار الإجراءات -->
+  <div class="controls-panel">
+    <button class="btn btn-action" id="actionBtn" onclick="triggerReaction()">▶ بدء التفاعل وملاحظة الدليل</button>
+    <button class="btn btn-reset" onclick="resetReaction()">🔄 إعادة التجربة</button>
+  </div>
+
+  <!-- صندوق التفسير العلمي المنهجي -->
+  <div class="info-card">
+    <div class="info-title" id="infoTitle">الدليل العلمي:</div>
+    <div id="infoText">جاري التحميل...</div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById("reactionCanvas");
+  const ctx = canvas.getContext("2d");
+
+  // قاعدة بيانات المحطات الست المنهجية (ص 70-75)
+  const STATIONS = [
+    {
+      id: "gas", title: "1. تحرر الغاز 🎈",
+      btnText: "إضافة صودا الخبز للخل (تصاعد CO₂)",
+      senses: { sight: true, hearing: true, thermal: false },
+      titleDesc: "الدليل الأول: انبعاث وتحرر الغاز (Gas Evolution)",
+      desc: "عند إضافة بيكربونات الصوديوم إلى الخل، يحدث فوران شديد نتيجة <b>تحرر غاز ثنائي أكسيد الكربون (CO₂)</b>، الذي يصعد ويملأ البالون المطاطي ويزيد حجمه دلالة على تكون مادة غازية جديدة."
+    },
+    {
+      id: "light", title: "2. انبعاث الضوء 💡",
+      btnText: "تقريب شريط المغنيسيوم من اللهب 🔥",
+      senses: { sight: true, hearing: false, thermal: true },
+      titleDesc: "الدليل الثاني: انبعاث الطاقة الضوئية (Light Emission ص 71)",
+      desc: "يحترق شريط المغنيسيوم الفلزي بوجود الأوكسجين محرراً <b>وميضاً أبيض ساطعاً ومبهراً</b> مع طاقة حرارية عالية، ويتحول إلى رماد أبيض هش هو أكسيد المغنيسيوم (2Mg + O₂ ➔ 2MgO)."
+    },
+    {
+      id: "precipitate", title: "3. تكون الراسب 🥛",
+      btnText: "إضافة قطرات المحلول المرسب 💧",
+      senses: { sight: true, hearing: false, thermal: false },
+      titleDesc: "الدليل الثالث: تكون الراسب والتعكر (Precipitate Formation)",
+      desc: "عند مزج محلولين رائقين شفافين، تتفاعل الأيونات لتكوين <b>مادة صلبة غير ذائبة (راسب أبيض)</b> تتعلق في السائل وتجعله غائماً وحليبياً ثم تترسب في القاع بفعل الجاذبية."
+    },
+    {
+      id: "color", title: "4. تغير اللون 🎨",
+      btnText: "إسقاط المسمار في المحلول الأزرق 🔩",
+      senses: { sight: true, hearing: false, thermal: false },
+      titleDesc: "الدليل الرابع: التغير اللوني (Color Change)",
+      desc: "تفاعل استبدال؛ يحل الحديد (Fe) محل النحاس في محلول كبريتات النحاس الأزرق، مما يؤدي إلى <b>تلاشي اللون الأزرق تدريجياً إلى الأخضر الفاتح</b> وترسب طبقة نحاس حمراء على المسمار."
+    },
+    {
+      id: "thermal", title: "5. التغير الحراري 🌡️",
+      btnText: "بدء التفاعل ومراقبة الميزان 🌡️",
+      senses: { sight: true, hearing: false, thermal: true },
+      titleDesc: "الدليل الخامس: التغير في درجة الحرارة (Thermal Changes)",
+      desc: "بعض التفاعلات <b>طاردة للحرارة</b> تطلق طاقة حرارية ترفع درجة حرارة الوعاء بشدة، بينما تفاعلات أخرى <b>ماصة للحرارة</b> تمتص الطاقة من الوسط مما يؤدي لبرودته وتجمد الرطوبة حوله."
+    },
+    {
+      id: "electricity", title: "6. إنتاج الكهرباء ⚡",
+      btnText: "توصيل دارة بطارية الليمون 🍋",
+      senses: { sight: true, hearing: false, thermal: false },
+      titleDesc: "الدليل السادس: إنتاج الطاقة الكهربائية (Electrical Production)",
+      desc: "تتحول الطاقة الكيميائية الكامنة في حمض الليمون وتفاعل قطبي الخارصين والنحاس مباشرة إلى <b>تيار كهربائي يضيء المصباح وتشغيل الساعة</b> دون أي بطارية جافة خارجية."
+    }
+  ];
+
+  let currentStation = STATIONS[0];
+  let isReacting = false;
+  let animProgress = 0; // 0 to 1
+  let thermalSubMode = "exo"; // exo or endo
+  let particles = [];
+
+  // محرك الأصوات الفيزيائية عبر Web Audio API
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playSound(type) {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+
+    if (type === "fizz") {
+      const dur = 0.5;
+      const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (d.length * 0.4));
+      const src = audioCtx.createBufferSource(); src.buffer = buf;
+      const filt = audioCtx.createBiquadFilter(); filt.type = "bandpass"; filt.frequency.value = 1800;
+      src.connect(filt); filt.connect(audioCtx.destination); src.start();
+    } else if (type === "flash") {
+      osc.type = "triangle"; osc.frequency.setValueAtTime(80, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+      osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.4);
+      g.gain.setValueAtTime(0.4, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    } else if (type === "click") {
+      osc.type = "sine"; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+    } else if (type === "beep") {
+      osc.type = "sine"; osc.frequency.setValueAtTime(784, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+      osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+    }
+  }
+
+  // بناء التبويبات الستة
+  const tBox = document.getElementById("stationsTabs");
+  STATIONS.forEach((s, idx) => {
+    const btn = document.createElement("button");
+    btn.className = `st-btn ${idx === 0 ? 'active' : ''}`;
+    btn.innerText = s.title;
+    btn.onclick = () => selectStation(s, btn);
+    tBox.appendChild(btn);
+  });
+
+  function selectStation(st, btn) {
+    currentStation = st;
+    document.querySelectorAll(".st-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("thermalSwitch").style.display = st.id === "thermal" ? "flex" : "none";
+    playSound("click");
+    resetReaction();
+  }
+
+  function setThermalMode(m) {
+    thermalSubMode = m;
+    document.getElementById("btnExo").className = m === "exo" ? "sub-btn active" : "sub-btn";
+    document.getElementById("btnEndo").className = m === "endo" ? "sub-btn active" : "sub-btn";
+    playSound("click");
+    resetReaction();
+  }
+
+  function triggerReaction() {
+    if (isReacting || animProgress >= 1) return;
+    isReacting = true;
+    playSound(currentStation.id === "gas" ? "fizz" : (currentStation.id === "light" ? "flash" : "beep"));
+    updateSensoryIndicators(true);
+  }
+
+  function resetReaction() {
+    isReacting = false;
+    animProgress = 0;
+    particles = [];
+    updateSensoryIndicators(false);
+    updateUI();
+  }
+
+  function updateSensoryIndicators(active) {
+    const s = currentStation.senses;
+    const sight = document.getElementById("senseSight");
+    const hearing = document.getElementById("senseHearing");
+    const thermal = document.getElementById("senseThermal");
+
+    sight.className = (active && s.sight) ? "sensor-item active" : "sensor-item";
+    hearing.className = (active && s.hearing) ? "sensor-item active" : "sensor-item";
+    thermal.className = (active && s.thermal) ? "sensor-item active" : "sensor-item";
+  }
+
+  function updateUI() {
+    document.getElementById("actionBtn").innerText = `▶ ${currentStation.btnText}`;
+    document.getElementById("actionBtn").className = currentStation.id === "light" ? "btn btn-action burning" : "btn btn-action";
+    document.getElementById("infoTitle").innerText = currentStation.titleDesc;
+    document.getElementById("infoText").innerHTML = currentStation.desc;
+  }
+
+  // --- محرك الرسم والتحريك (Canvas Render Engine) ---
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (isReacting && animProgress < 1) {
+      animProgress += 0.015;
+      if (animProgress >= 1) animProgress = 1;
+    }
+
+    ctx.save();
+    switch (currentStation.id) {
+      case "gas": renderStationGas(); break;
+      case "light": renderStationLight(); break;
+      case "precipitate": renderStationPrecipitate(); break;
+      case "color": renderStationColor(); break;
+      case "thermal": renderStationThermal(); break;
+      case "electricity": renderStationElectricity(); break;
+    }
+    ctx.restore();
+
+    requestAnimationFrame(loop);
+  }
+
+  // 1. محطة تحرر الغاز والبالون
+  function renderStationGas() {
+    const cx = 240, cy = 180;
+    const p = animProgress;
+
+    // رسم الدورق المخروطي
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 18, 90); ctx.lineTo(cx - 18, 120);
+    ctx.lineTo(cx - 65, cy + 20); ctx.lineTo(cx + 65, cy + 20);
+    ctx.lineTo(cx + 18, 120); ctx.lineTo(cx + 18, 90);
+    ctx.stroke();
+
+    // سائل الخل في القاع
+    ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.beginPath();
+    ctx.moveTo(cx - 58, cy + 18); ctx.lineTo(cx + 58, cy + 18);
+    ctx.lineTo(cx + 35, 140); ctx.lineTo(cx - 35, 140);
+    ctx.closePath(); ctx.fill();
+
+    // فوران وفقاعات صاعدة عند التفاعل
+    if (isReacting) {
+      if (Math.random() < 0.3) playSound("fizz");
+      for (let i = 0; i < 15; i++) {
+        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.beginPath();
+        const bx = cx - 35 + Math.random() * 70;
+        const by = 135 + Math.random() * 55;
+        ctx.arc(bx, by, 1.5 + Math.random() * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // البالون المطاطي على الفوهة (ينتفخ تدريجياً مع p)
+    const balloonR = 8 + p * 38;
+    const balloonY = 90 - balloonR;
+
+    ctx.save();
+    ctx.fillStyle = "#ef4444";
+    ctx.beginPath();
+    ctx.ellipse(cx, balloonY, balloonR, balloonR * 1.15, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#b91c1c";
+    ctx.fillRect(cx - 8, 86, 16, 6); // رباط عنق البالون
+    ctx.restore();
+
+    // تسمية توضيحية
+    ctx.fillStyle = "#facc15"; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(p > 0.1 ? "غاز CO₂ المحرر ينفخ البالون" : "الخل + صودا الخبز جاهزان", cx, cy + 40);
+  }
+
+  // 2. محطة انبعاث الضوء والمغنيسيوم
+  function renderStationLight() {
+    const p = animProgress;
+
+    // موقد بنزن في الأسفل
+    ctx.fillStyle = "#334155"; ctx.fillRect(140, 180, 50, 35);
+    ctx.fillRect(160, 150, 10, 30);
+    // لهب بنزن
+    ctx.fillStyle = "#38bdf8"; ctx.beginPath(); ctx.moveTo(165, 120); ctx.lineTo(156, 150); ctx.lineTo(174, 150); ctx.fill();
+    ctx.fillStyle = "#fbbf24"; ctx.beginPath(); ctx.moveTo(165, 130); ctx.lineTo(160, 150); ctx.lineTo(170, 150); ctx.fill();
+
+    // ملقط شريط المغنيسيوم
+    const ribbonX = 165 + (1 - p) * 100;
+    const ribbonY = 125;
+
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(ribbonX + 80, 70); ctx.lineTo(ribbonX + 20, ribbonY); ctx.stroke();
+
+    if (p < 0.3) {
+      // شريط مغنيسيوم فضي لامع قبل الاحتراق
+      ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 5; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(ribbonX + 20, ribbonY); ctx.lineTo(ribbonX - 10, ribbonY + 5); ctx.stroke();
+    } else if (p < 0.85) {
+      // وميض أبيض شديد وساطع يعمي الأبصار (Light Bloom)
+      ctx.save();
+      const flashGrad = ctx.createRadialGradient(ribbonX, ribbonY, 5, ribbonX, ribbonY, 95);
+      flashGrad.addColorStop(0, "#ffffff");
+      flashGrad.addColorStop(0.3, "rgba(255, 255, 255, 0.95)");
+      flashGrad.addColorStop(0.7, "rgba(254, 240, 138, 0.5)");
+      flashGrad.addColorStop(1, "transparent");
+      ctx.fillStyle = flashGrad;
+      ctx.beginPath(); ctx.arc(ribbonX, ribbonY, 95, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    } else {
+      // رماد أكسيد المغنيسيوم الأبيض الهش في صحن
+      ctx.fillStyle = "#ffffff";
+      for (let i = 0; i < 20; i++) {
+        ctx.beginPath();
+        ctx.arc(ribbonX - 10 + Math.random() * 20, ribbonY + 10 + Math.random() * 10, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = "#facc15"; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+      ctx.fillText("رماد أكسيد المغنيسيوم الأبيض (MgO)", ribbonX, ribbonY + 45);
+    }
+  }
+
+  // 3. محطة تكون الراسب والتعكر
+  function renderStationPrecipitate() {
+    const cx = 240, cy = 90;
+    const p = animProgress;
+
+    // أنبوبة الاختبار
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 20, cy); ctx.lineTo(cx - 20, cy + 100);
+    ctx.arc(cx, cy + 100, 20, Math.PI, 0);
+    ctx.lineTo(cx + 20, cy);
+    ctx.stroke();
+
+    // المحلول الرائق الشفاف أولاً
+    ctx.fillStyle = `rgba(56, 189, 248, ${0.25 - p * 0.1})`;
+    ctx.beginPath();
+    ctx.moveTo(cx - 18, cy + 30); ctx.lineTo(cx - 18, cy + 100);
+    ctx.arc(cx, cy + 100, 18, Math.PI, 0); ctx.lineTo(cx + 18, cy + 30);
+    ctx.fill();
+
+    // القطارة في الأعلى تسكب القطرات
+    ctx.fillStyle = "#64748b"; ctx.fillRect(cx - 4, cy - 45, 8, 30);
+    if (isReacting && p < 0.4) {
+      ctx.fillStyle = "#38bdf8"; ctx.beginPath(); ctx.arc(cx, cy - 5 + p * 60, 3, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // تكون الراسب الأبيض المعكر وهبوطه للقاع
+    if (p > 0.2) {
+      // تعكر حليبي في السائل
+      ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(0.75, (p - 0.2) * 1.5)})`;
+      ctx.beginPath();
+      ctx.moveTo(cx - 18, cy + 30); ctx.lineTo(cx - 18, cy + 100);
+      ctx.arc(cx, cy + 100, 18, Math.PI, 0); ctx.lineTo(cx + 18, cy + 30);
+      ctx.fill();
+
+      // تجمع الراسب الصلب بالقاع
+      const precipH = (p - 0.2) * 22;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(cx, cy + 100, 18, Math.PI * 0.2, Math.PI * 0.8);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = "#facc15"; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(p > 0.4 ? "تعكر وتكون راسب أبيض صلب" : "المحلولان رائقان قبل المزج", cx, cy + 135);
+  }
+
+  // 4. محطة التغير اللوني
+  function renderStationColor() {
+    const cx = 240, cy = 130;
+    const p = animProgress;
+
+    // كأس زجاجي
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 50, cy - 40, 100, 95);
+
+    // تدرج لون المحلول من الأزرق الفاتح إلى الأخضر الباهت
+    const r = Math.round(56 * (1 - p) + 34 * p);
+    const g = Math.round(189 * (1 - p) + 197 * p);
+    const b = Math.round(248 * (1 - p) + 94 * p);
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.45)`;
+    ctx.fillRect(cx - 48, cy - 15, 96, 68);
+
+    // المسمار الحديدي المغمور
+    ctx.save();
+    ctx.translate(cx, cy + 20);
+    ctx.rotate(0.3);
+
+    // لون المسمار يتحول من رمادي حديدي إلى بني نحاسي أحمر
+    const nailR = Math.round(148 * (1 - p) + 180 * p);
+    const nailG = Math.round(163 * (1 - p) + 83 * p);
+    const nailB = Math.round(184 * (1 - p) + 9 * p);
+    ctx.fillStyle = `rgb(${nailR}, ${nailG}, ${nailB})`;
+
+    ctx.fillRect(-6, -55, 12, 55); // جسم المسمار
+    ctx.fillRect(-12, -60, 24, 6);  // رأس المسمار
+    ctx.restore();
+
+    ctx.fillStyle = "#facc15"; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(p > 0.3 ? "تغير اللون للأخضر وترسب النحاس الأحمر" : "كبريتات النحاس الزرقاء (CuSO₄)", cx, cy + 75);
+  }
+
+  // 5. محطة التغير الحراري
+  function renderStationThermal() {
+    const cx = 200, cy = 130;
+    const p = animProgress;
+    const isExo = thermalSubMode === "exo";
+
+    // كأس التفاعل
+    ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 3;
+    ctx.strokeRect(cx - 50, cy - 40, 100, 95);
+    ctx.fillStyle = isExo ? "rgba(239, 68, 68, 0.2)" : "rgba(56, 189, 248, 0.25)";
+    ctx.fillRect(cx - 48, cy - 15, 96, 68);
+
+    // بخار صاعد إذا كان طارداً
+    if (isExo && p > 0.2) {
+      for (let i = 0; i < 8; i++) {
+        ctx.fillStyle = "rgba(255,255,255,0.35)";
+        ctx.beginPath();
+        ctx.arc(cx - 30 + Math.random() * 60, cy - 25 - Math.random() * 40, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // بلورات صقيع جليدي إذا كان ماصاً
+    if (!isExo && p > 0.2) {
+      ctx.strokeStyle = "#e0f2fe"; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 6; i++) {
+        const fx = cx - 55 + i * 22;
+        ctx.beginPath(); ctx.moveTo(fx, cy + 50); ctx.lineTo(fx + 6, cy + 40); ctx.stroke();
+      }
+    }
+
+    // ميزان الحرارة الرقمي والزئبقي
+    const tx = cx + 95;
+    ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 2;
+    ctx.strokeRect(tx - 6, cy - 50, 12, 90);
+    ctx.beginPath(); ctx.arc(tx, cy + 45, 12, 0, Math.PI * 2); ctx.stroke();
+
+    // سائل الميزان يرتفع أو يهبط
+    const currentTemp = isExo ? (25 + p * 55) : (25 - p * 29);
+    const mercuryH = isExo ? (30 + p * 50) : (30 - p * 22);
+
+    ctx.fillStyle = isExo ? "#ef4444" : "#38bdf8";
+    ctx.beginPath(); ctx.arc(tx, cy + 45, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(tx - 3, cy + 45 - mercuryH, 6, mercuryH);
+
+    // شاشة رقمية لدرجة الحرارة
+    ctx.fillStyle = "#0f172a"; ctx.fillRect(tx + 22, cy - 25, 75, 30);
+    ctx.strokeStyle = isExo ? "#ef4444" : "#38bdf8"; ctx.lineWidth = 1.5;
+    ctx.strokeRect(tx + 22, cy - 25, 75, 30);
+
+    ctx.fillStyle = isExo ? "#f87171" : "#38bdf8";
+    ctx.font = "bold 15px monospace"; ctx.textAlign = "center";
+    ctx.fillText(`${Math.round(currentTemp)} °C`, tx + 59, cy - 5);
+  }
+
+  // 6. محطة إنتاج الكهرباء (بطارية الليمون)
+  function renderStationElectricity() {
+    const cx = 240, cy = 135;
+    const p = animProgress;
+
+    // حبة الليمون الصفراء
+    ctx.save();
+    ctx.fillStyle = "#facc15"; ctx.strokeStyle = "#eab308"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 20, 75, 45, 0, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+
+    // قطب الخارصين Zn (رمادي)
+    ctx.fillStyle = "#94a3b8"; ctx.fillRect(cx - 40, cy - 10, 8, 35);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 9px monospace"; ctx.fillText("Zn", cx - 36, cy - 15);
+
+    // قطب النحاس Cu (برتقالي نحاسي)
+    ctx.fillStyle = "#f97316"; ctx.fillRect(cx + 32, cy - 10, 8, 35);
+    ctx.fillStyle = "#fff"; ctx.fillText("Cu", cx + 36, cy - 15);
+    ctx.restore();
+
+    // أسلاك التوصيل وساعة الـ LED
+    ctx.strokeStyle = p > 0.3 ? "#22c55e" : "#475569"; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 36, cy - 10); ctx.lineTo(cx - 36, cy - 45); ctx.lineTo(cx - 20, cy - 45);
+    ctx.moveTo(cx + 36, cy - 10); ctx.lineTo(cx + 36, cy - 45); ctx.lineTo(cx + 20, cy - 45);
+    ctx.stroke();
+
+    // مصباح LED أو شاشة رقمية
+    const bulbY = cy - 55;
+    if (p > 0.4) {
+      // توهج المصباح الأخضر
+      ctx.save();
+      const glow = ctx.createRadialGradient(cx, bulbY, 2, cx, bulbY, 30);
+      glow.addColorStop(0, "#ffffff");
+      glow.addColorStop(0.4, "#22c55e");
+      glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow;
+      ctx.beginPath(); ctx.arc(cx, bulbY, 30, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.fillStyle = p > 0.4 ? "#22c55e" : "#334155";
+    ctx.beginPath(); ctx.arc(cx, bulbY, 10, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = "#facc15"; ctx.font = "bold 11px 'Cairo', sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(p > 0.4 ? "تولد تيار كهربائي وأضاء المصباح ⚡" : "دارة بطارية الليمون جاهزة للتوصيل", cx, cy + 80);
+  }
+
+  // البدء والتهيئة
+  updateUI();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
