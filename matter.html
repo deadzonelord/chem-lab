@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>محاكاة حالات المادة والتسخين</title>
+  <title>محاكاة حالات المادة والتسخين | أ. حسين التميمي</title>
   <style>
     * {
       box-sizing: border-box;
@@ -29,17 +29,44 @@
       align-items: center;
       gap: 12px;
     }
+
+    /* زر الرجوع للخلف */
+    .top-nav {
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 2px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e293b;
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 6px 14px;
+      border-radius: 99px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: bold;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .back-btn:active {
+      transform: scale(0.96);
+      background: #334155;
+    }
+
     .header {
       text-align: center;
-      margin-top: 4px;
+      margin-top: 2px;
     }
     .header h1 {
-      font-size: 19px;
+      font-size: 18px;
       margin: 0;
       color: #38bdf8;
     }
     .header p {
-      font-size: 12px;
+      font-size: 11.5px;
       color: #94a3b8;
       margin: 3px 0 0 0;
     }
@@ -75,7 +102,7 @@
       font-weight: 600;
     }
     .temp-value {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       color: #fbbf24;
       direction: ltr;
@@ -144,9 +171,14 @@
 <body>
 
 <div class="container">
+  <!-- شريط الرجوع للقائمة الرئيسية -->
+  <div class="top-nav">
+    <a href="index.html" class="back-btn">⬅ الرجوع لقائمة التجارب</a>
+  </div>
+
   <div class="header">
     <h1>محاكاة الديناميكا الحرارية للمادة</h1>
-    <p>تأثير الطاقة الحركية وقوى التجاذب الجزيئية عند التسخين</p>
+    <p>إشراف: أ. حسين التميمي • كيمياء الأول متوسط</p>
   </div>
 
   <div class="canvas-wrapper">
@@ -183,7 +215,6 @@
   const infoTitle = document.getElementById("infoTitle");
   const infoText = document.getElementById("infoText");
 
-  // حدود وعاء المادة (Container Boundaries)
   const box = {
     x: 45,
     y: 35,
@@ -192,12 +223,10 @@
     bottom: 285
   };
 
-  // إعداد الجزيئات
   const PARTICLE_COUNT = 45;
   const PARTICLE_RADIUS = 9.5;
   const particles = [];
 
-  // شبكة الحالة الصلبة (Lattice Sites)
   const COLS = 9;
   const ROWS = 5;
   const spacingX = 26;
@@ -207,7 +236,6 @@
 
   let currentTemp = parseFloat(slider.value);
 
-  // توليد الجزيئات ومواقعها الأصلية
   let idx = 0;
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
@@ -238,43 +266,38 @@
     const kelvin = Math.round(currentTemp + 273.15);
     tempDisplay.textContent = `${currentTemp >= 0 ? '+' : ''}${currentTemp} °C | ${kelvin} K`;
 
-    // تحديث الأزرار
     document.getElementById("btnSolid").className = currentTemp < 0 ? "active" : "";
     document.getElementById("btnLiquid").className = (currentTemp >= 0 && currentTemp < 100) ? "active" : "";
     document.getElementById("btnGas").className = currentTemp >= 100 ? "active" : "";
 
-    // تحديث الشرح العلمي
     if (currentTemp < 0) {
       infoTitle.textContent = "الحالة الصلبة (Solid Phase)";
       infoTitle.style.color = "#38bdf8";
-      infoText.innerHTML = "<b>قوى التماسك الجزيئي تتفوق تماماً على الطاقة الحركية:</b> الجزيئات مقيدة داخل شبكة بلورية منتظمة وتتحرك فقط عبر اهتزاز موضعي متوافق. الشكل ثابت والحجم ثابت.";
+      infoText.innerHTML = "<b>قوى التماسك الجزيئي تتفوق على الطاقة الحركية:</b> الجزيئات مقيدة بشبكة بلورية وتتحرك باهتزاز موضعي متوافق. الشكل والحجم ثابتان.";
     } else if (currentTemp < 100) {
       infoTitle.textContent = "الحالة السائلة (Liquid Phase)";
       infoTitle.style.color = "#34d399";
-      infoText.innerHTML = "<b>توازن ديناميكي بين الطاقة الحركية وقوى التماسك:</b> الحرارة كسرت النظام البلوري. الجزيئات تتزحلق وتتدفق فوق بعضها بتماس مستمر في قاع الإناء. الحجم ثابت لكن الشكل متغير.";
+      infoText.innerHTML = "<b>توازن ديناميكي بين الحركة وقوى التماسك:</b> تكسر النظام البلوري؛ تنزلق الجزيئات فوق بعضها في قاع الإناء. الحجم ثابت والشكل متغير.";
     } else {
       infoTitle.textContent = "الحالة الغازية (Gas Phase)";
       infoTitle.style.color = "#f87171";
-      infoText.innerHTML = "<b>الطاقة الحركية تكتسح قوى التجاذب بالكامل:</b> انعدام التجاذب بين الجزيئات؛ تتحرك بسرعات متجهة هائلة في كامل فراغ الوعاء وتصطدم بالجدران لتوليد الضغط. لا شكل ثابت ولا حجم ثابت.";
+      infoText.innerHTML = "<b>الطاقة الحركية تكتسح قوى التجاذب بالكامل:</b> انعدام التجاذب بين الجزيئات؛ سرعات عشوائية هائلة تملأ كامل الوعاء وتولد الضغط بالتصادم.";
     }
   }
 
   slider.addEventListener("input", updateState);
   updateState();
 
-  // محاكاة الفيزياء والتحديث الحركي
   function updatePhysics() {
     const isSolid = currentTemp < 0;
     const isLiquid = currentTemp >= 0 && currentTemp < 100;
     const isGas = currentTemp >= 100;
 
-    // مقياس السرعة الحركية المستهدفة بناء على الجذر التربيعي لدرجة الحرارة المطلقة (v_rms ~ sqrt(T))
     const kelvin = currentTemp + 273.15;
     const targetSpeed = Math.sqrt(kelvin) * 0.28;
 
     particles.forEach((p, i) => {
       if (isSolid) {
-        // جذب متوافق نحو مواضع الشبكة البلورية + اهتزاز حراري
         const vibAmp = Math.max(0.6, (currentTemp + 50) / 10);
         p.phase += 0.25 + (currentTemp + 50) * 0.005;
         const targetX = p.lx + Math.sin(p.phase) * vibAmp;
@@ -286,18 +309,12 @@
         p.vy = 0;
       } 
       else if (isLiquid) {
-        // الجاذبية تبقي السائل أسفل الوعاء مع حركة انسيابية وتدفق
-        p.vy += 0.16; // جاذبية أرضية
-        
-        // تصادم مع قاع وجوانب وسقف مستوى السائل
-        const liquidTop = box.bottom - 110 - (currentTemp * 0.35); // تمدد حراري بسيط
+        p.vy += 0.16;
+        const liquidTop = box.bottom - 110 - (currentTemp * 0.35);
         if (p.y < liquidTop) { p.y = liquidTop; p.vy *= -0.5; }
 
-        // إضافة تشويش حراري عشوائي (Brownian impulses)
         p.vx += (Math.random() - 0.5) * targetSpeed * 0.45;
         p.vy += (Math.random() - 0.5) * targetSpeed * 0.45;
-
-        // ضبط السرعة باللزوجة
         p.vx *= 0.93;
         p.vy *= 0.93;
 
@@ -305,8 +322,6 @@
         p.y += p.vy;
       } 
       else {
-        // الحالة الغازية: الجاذبية مهملة، الجزيئات تنتشر في كامل الحجم
-        // تسارع حراري
         const currentSpeed = Math.hypot(p.vx, p.vy) || 0.1;
         p.vx = (p.vx / currentSpeed) * targetSpeed + (Math.random() - 0.5) * 0.4;
         p.vy = (p.vy / currentSpeed) * targetSpeed + (Math.random() - 0.5) * 0.4;
@@ -315,7 +330,6 @@
         p.y += p.vy;
       }
 
-      // حدود جدران الإناء
       const minX = box.x + PARTICLE_RADIUS + 4;
       const maxX = box.x + box.width - PARTICLE_RADIUS - 4;
       const minY = isGas ? box.y + PARTICLE_RADIUS + 4 : box.y;
@@ -326,7 +340,6 @@
       if (p.y > maxY) { p.y = maxY; p.vy = -Math.abs(p.vy) * 0.8; }
       if (isGas && p.y < minY) { p.y = minY; p.vy = Math.abs(p.vy); }
 
-      // تصادم الجزيئات البينية (Soft Elastic Repulsion) في السائل والغاز
       if (!isSolid) {
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
@@ -360,28 +373,23 @@
     });
   }
 
-  // رسم المشهد
   function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. رسم الإناء الزجاجي المحكم (Beaker / Vessel)
     ctx.save();
     ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
     ctx.lineWidth = 3;
     ctx.strokeRect(box.x, box.y, box.width, box.height);
 
-    // غطاء الإناء المحكم
     ctx.fillStyle = "#334155";
     ctx.fillRect(box.x - 6, box.y - 6, box.width + 12, 10);
     ctx.fillStyle = "#64748b";
     ctx.fillRect(box.x + box.width / 2 - 15, box.y - 14, 30, 8);
 
-    // زجاج الإناء (انعكاس وتظليل خفيف)
     ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
     ctx.fillRect(box.x, box.y, box.width, box.height);
     ctx.restore();
 
-    // 2. رسم الروابط الجزيئية البلورية (في الحالة الصلبة فقط)
     if (currentTemp < 0) {
       ctx.save();
       const bondAlpha = Math.max(0.1, Math.min(0.65, (-currentTemp) / 50));
@@ -401,13 +409,11 @@
       ctx.restore();
     }
 
-    // 3. رسم الجزيئات (Particles)
-    // التدرج اللوني للجزيء يتغير حسب الحرارة
-    let pColor1 = "#38bdf8", pColor2 = "#0284c7"; // بارد جداً (ثلج)
+    let pColor1 = "#38bdf8", pColor2 = "#0284c7";
     if (currentTemp >= 0 && currentTemp < 100) {
-      pColor1 = "#34d399"; pColor2 = "#059669"; // ماء سائل
+      pColor1 = "#34d399"; pColor2 = "#059669";
     } else if (currentTemp >= 100) {
-      pColor1 = "#f87171"; pColor2 = "#dc2626"; // بخار ساخن
+      pColor1 = "#f87171"; pColor2 = "#dc2626";
     }
 
     particles.forEach(p => {
@@ -429,9 +435,7 @@
       ctx.restore();
     });
 
-    // 4. رسم موقد التسخين بالأسفل (Burner / Flame Animation)
     renderHeater();
-
     requestAnimationFrame(loop);
   }
 
@@ -440,7 +444,6 @@
     const heaterY = box.bottom + 22;
     const centerX = box.x + box.width / 2;
 
-    // قاعدة الموقد
     ctx.fillStyle = "#334155";
     ctx.fillRect(centerX - 40, heaterY + 22, 80, 8);
     ctx.fillStyle = "#475569";
@@ -453,7 +456,6 @@
       const flameWidth = 12 + intensity * 24;
 
       ctx.save();
-      // لهب خارجي برتقالي/أحمر
       ctx.beginPath();
       ctx.moveTo(centerX - flameWidth / 2, heaterY + 10);
       ctx.quadraticCurveTo(centerX, heaterY + 10 - flameHeight, centerX + flameWidth / 2, heaterY + 10);
@@ -462,7 +464,6 @@
       ctx.shadowBlur = 12 * intensity;
       ctx.fill();
 
-      // قلب اللهب أزرق/أصفر مشع
       ctx.beginPath();
       ctx.moveTo(centerX - flameWidth / 4, heaterY + 10);
       ctx.quadraticCurveTo(centerX, heaterY + 10 - (flameHeight * 0.55), centerX + flameWidth / 4, heaterY + 10);
@@ -470,7 +471,6 @@
       ctx.fill();
       ctx.restore();
     } else {
-      // مؤشر التجمد (بلورات برودة)
       ctx.fillStyle = "#38bdf8";
       ctx.font = "12px sans-serif";
       ctx.textAlign = "center";
